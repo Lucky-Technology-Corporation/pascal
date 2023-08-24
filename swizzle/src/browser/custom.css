@@ -1,0 +1,15 @@
+#theia-top-panel {
+    display: none !important;
+}
+#theia-left-content-panel {
+    display: none;
+}
+#theia-right-content-panel{
+    display: none;
+}  
+#theia-left-right-split-panel{
+    top: 0px;
+}
+#theia-bottom-split-panel{
+    left: 0px;
+}
