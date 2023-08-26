@@ -22,6 +22,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     protected readonly terminalService!: TerminalService;
     
     private lastPrependedText?: string;
+    private terminalWidgetId: string = "";
 
     onStart(): void {
         //Listen for incoming messages 
@@ -34,6 +35,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 try{
                     await terminal.start();
                     this.terminalService.open(terminal);
+                    this.terminalWidgetId = terminal.id;
                }catch(error){
                     console.log(error)
                 }
@@ -69,6 +71,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     this.messageService.error(`Failed to open the file: ${error}`);
                 });
             }
+        } else if(event.data.type === 'addPackage'){
+            console.log("addPackage " + event.data.packageName);
+            const packageName = event.data.packageName;
+            const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
+            if(!terminalWidget){
+                this.messageService.error(`Terminal not found`);
+                return;
+            }
+            terminalWidget.sendText(`npm install ${packageName} --save-dev`);
         } else if(event.data.type === 'prependText'){
             console.log("prependText " + event.data.content);
             const content = event.data.content;
