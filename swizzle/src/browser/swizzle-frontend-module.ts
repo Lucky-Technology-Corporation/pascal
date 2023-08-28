@@ -11,14 +11,8 @@ import { DebugService } from '@theia/debug/lib/common/debug-service';
 export default new ContainerModule((bind, unbind) => {
     bind(SwizzleContribution).toSelf().inSingletonScope();
     bind(FrontendApplicationContribution).toService(SwizzleContribution);
-
-    // bind(PluginVSCodeContribution).toSelf().inSingletonScope();
     bind(FrontendApplicationContribution).toService(PluginVSCodeContribution);
     bind(FrontendApplicationContribution).toService(DebugService);
-
-    // bind(UserStorageContribution).toSelf().inSingletonScope();
-    // bind(FrontendApplicationContribution).toService(UserStorageContribution);
-
 
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
         onStart(): void {
