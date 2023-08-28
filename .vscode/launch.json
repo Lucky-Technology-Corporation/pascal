@@ -15,7 +15,9 @@
                 "--no-cluster"
             ],
             "env": {
-                "NODE_ENV": "development"
+                "NODE_ENV": "development",
+                "THEIA_PLUGINS": "local-dir:${workspaceRoot}/plugins",
+                "THEIA_DEFAULT_PLUGINS": "local-dir:${workspaceRoot}/plugins"
             },
             "sourceMaps": true,
             "outFiles": [
