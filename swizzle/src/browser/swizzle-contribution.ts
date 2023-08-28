@@ -5,6 +5,7 @@ import { MessageService } from '@theia/core';
 import { ApplicationShell, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 import URI from '@theia/core/lib/common/uri'; 
+import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -20,6 +21,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     
     @inject(TerminalService)
     protected readonly terminalService!: TerminalService;
+
+    @inject(PreferenceService)
+    protected readonly preferenceService: PreferenceService;  
     
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
@@ -45,9 +49,35 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             })
         }, 1000);
 
+        //Set the file associations
+        this.setFileAssociations();
+
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));        
     }
+
+
+    //Set the file associations
+    async setFileAssociations(): Promise<void> {
+        this.preferenceService.set('files.defaultLanguage', 'javascript', PreferenceScope.User);
+
+        const existingAssociations = this.preferenceService.get('files.associations') || {};
+        const newAssociations = {
+            ...(existingAssociations as { [key: string]: string }),
+            "*.ts": "typescript",
+            "*.tsx": "typescriptreact",
+            "*.js": "javascript",
+            "*.jsx": "javascriptreact",
+            "*.json": "jsonc",
+            "*.md": "markdown",
+            "*.mdx": "markdown",
+            "*.html": "html",
+            "*.css": "css",
+            "*.scss": "scss",
+        };
+        await this.preferenceService.set('files.associations', newAssociations, PreferenceScope.User);
+      }
+    
 
     //Notify the parent that the current file has changed
     protected handleEditorChanged(): void {
