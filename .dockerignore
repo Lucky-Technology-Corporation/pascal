@@ -1,0 +1,21 @@
+# Node modules
+node_modules
+
+# Logs
+*.log
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# Generated Files
+**/src-gen/
+
+# Electron app, if not needed in container
+electron-app/
+
+# General
+.DS_Store
+.git
+.gitignore
+README.md
