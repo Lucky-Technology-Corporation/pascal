@@ -59,15 +59,19 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.setFileAssociations();
 
         //Listen for file changes
-        this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));        
+        this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));    
+        
+        //Close all open files
+        this.closeOpenFiles();
     }
 
-    //Unused - decide if we want to do this in onStart?
     async closeOpenFiles(): Promise<void> {
-        await this.shell.pendingUpdates;
-        for (const editorWidget of this.editorManager.all) {
-            editorWidget.close();
-        }
+        setTimeout(() => {
+            for (const editorWidget of this.editorManager.all) {
+                console.log("Closing " + editorWidget.editor.uri.toString());
+                editorWidget.close();
+            }
+        }, 1000);
     }
 
     //Set the file associations
