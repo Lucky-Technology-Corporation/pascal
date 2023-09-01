@@ -105,12 +105,42 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
-    async createNewFile(filePath: string): Promise<void> {
+    async openExistingFile(fileName: string): Promise<void> {
+        const fileUri = "/home/swizzle_prod_user/code/user-dependencies/" + fileName;
+        if (fileUri) {
+            this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
+                if (editorWidget) {
+                    this.shell.activateWidget(editorWidget.id);
+                }
+            }).catch(error => {
+                this.messageService.error(`Failed to open the file: ${error}`);
+            });
+        }
+    }
+
+    async createNewFile(fileName: string): Promise<void> {
+        var filePath = "/home/swizzle_prod_user/code/user-dependencies/" + fileName;
         const uri = new URI(filePath);
         const resource = await this.resourceProvider(uri);
         
         if (resource.saveContents) {
             await resource.saveContents('', { encoding: 'utf8' });
+        }
+
+        //add the reference to server.js
+        const serverUri = new URI("/home/swizzle_prod_user/code/server.js");
+        const serverResource = await this.resourceProvider(serverUri);
+        if (serverResource.saveContents) {
+            const content = await serverResource.readContents({ encoding: 'utf8' });
+            const reqiureName = fileName.replace(".js", "").replace(/-/g, "_");
+            var endpointPath = fileName.replace(".js", "").replace(/-/g, "/");
+            if(!endpointPath.startsWith("/")){ endpointPath = "/" + endpointPath; }
+            
+            const newContent = content
+                .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${reqiureName} = require("./user-dependencies/${filePath}");`)
+                .replace("_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use("${endpointPath}", ${reqiureName});`);
+            
+            await serverResource.saveContents(newContent, { encoding: 'utf8' });
         }
     }
 
@@ -139,21 +169,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
             this.closeCurrentFile()
-            const fileUri = event.data.fileUri;
-            if (fileUri) {
-                this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
-                    if (editorWidget) {
-                        this.shell.activateWidget(editorWidget.id);
-                    }
-                }).catch(error => {
-                    this.messageService.error(`Failed to open the file: ${error}`);
-                });
-            }
+            this.openExistingFile(event.data.fileName)
         } else if(event.data.type === 'newFile'){
             this.closeCurrentFile()
-            const endpointName = event.data.endpointName;
-            const fileName = endpointName.replace("/", "-") + ".js";
-            this.createNewFile(fileName);
+            this.createNewFile(event.data.fileName);
         } else if(event.data.type === 'saveFile'){
             this.saveCurrentFile();
         } else if(event.data.type === 'addPackage'){
