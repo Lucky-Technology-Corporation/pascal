@@ -184,6 +184,7 @@ router.${method}('/${endpoint}', passport.authenticate('jwt', { session: false }
     }
 
     protected closeCurrentFile(): void {
+        this.saveCurrentFile();
         const editor = this.editorManager.currentEditor;
         if (editor) {
             editor.close();
