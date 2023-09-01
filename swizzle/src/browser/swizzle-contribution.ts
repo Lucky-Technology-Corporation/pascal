@@ -32,6 +32,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
+    private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/user-dependencies/";
+    // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
+
     onStart(): void {
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
@@ -106,7 +109,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     async openExistingFile(fileName: string): Promise<void> {
-        const fileUri = "/home/swizzle_prod_user/code/user-dependencies/" + fileName;
+        const fileUri = this.MAIN_DIRECTORY + fileName;
         if (fileUri) {
             this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
                 if (editorWidget) {
@@ -118,29 +121,51 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
+    //accepts something like get-path-to-api.js or post-.js
     async createNewFile(fileName: string): Promise<void> {
-        var filePath = "/home/swizzle_prod_user/code/user-dependencies/" + fileName;
-        const uri = new URI(filePath);
-        const resource = await this.resourceProvider(uri);
-        
-        if (resource.saveContents) {
-            await resource.saveContents('', { encoding: 'utf8' });
-        }
+        try{
+            console.log("newfile")
+            var filePath = this.MAIN_DIRECTORY + fileName
+            const uri = new URI(filePath);
+            const resource = await this.resourceProvider(uri);
 
-        //add the reference to server.js
-        const serverUri = new URI("/home/swizzle_prod_user/code/server.js");
-        const serverResource = await this.resourceProvider(serverUri);
-        if (serverResource.saveContents) {
-            const content = await serverResource.readContents({ encoding: 'utf8' });
-            const reqiureName = fileName.replace(".js", "").replace(/-/g, "_");
-            var endpointPath = fileName.replace(".js", "").replace(/-/g, "/");
-            if(!endpointPath.startsWith("/")){ endpointPath = "/" + endpointPath; }
-            
-            const newContent = content
-                .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${reqiureName} = require("./user-dependencies/${filePath}");`)
-                .replace("_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use("${endpointPath}", ${reqiureName});`);
-            
-            await serverResource.saveContents(newContent, { encoding: 'utf8' });
+            const method = fileName.split("-")[0];
+            const endpoint = fileName.replace(".js", "").split("-").slice(1).join("/")
+
+            const fileContent = 
+`const express = require('express');
+const router = express.Router();
+const passport = require('passport');
+//TODO: Add Swizzle NPM package!
+
+router.${method}('/${endpoint}', passport.authenticate('jwt', { session: false }), async (request, result) => {
+});`
+
+            if (resource.saveContents) {
+                await resource.saveContents(fileContent, { encoding: 'utf8' });
+            }
+
+            //add the reference to server.js
+            const serverUri = new URI(this.MAIN_DIRECTORY + "server.js");
+            const serverResource = await this.resourceProvider(serverUri);
+            if (serverResource.saveContents) {
+                const content = await serverResource.readContents({ encoding: 'utf8' });
+                
+                var requireName = fileName.replace(".js", "").replace(/-/g, "_");
+                if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
+                var endpointPath = fileName.replace(".js", "").replace(/-/g, "/");
+                
+                const newContent = content
+                    .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
+                    .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use("${endpointPath}", ${requireName});`);
+                console.log(newContent)
+                await serverResource.saveContents(newContent, { encoding: 'utf8' });
+            }
+
+            this.openExistingFile(fileName)
+
+        } catch(error){
+            console.log(error)
         }
     }
 
