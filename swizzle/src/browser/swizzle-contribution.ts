@@ -128,9 +128,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
+    protected closeCurrentFile(): void {
+        const editor = this.editorManager.currentEditor;
+        if (editor) {
+            editor.close();
+        }
+    }
+
     protected handlePostMessage(event: MessageEvent): void {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
+            this.closeCurrentFile()
             const fileUri = event.data.fileUri;
             if (fileUri) {
                 this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
@@ -142,6 +150,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 });
             }
         } else if(event.data.type === 'newFile'){
+            this.closeCurrentFile()
             const endpointName = event.data.endpointName;
             const fileName = endpointName.replace("/", "-") + ".js";
             this.createNewFile(fileName);
