@@ -62,6 +62,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));        
     }
 
+    //Unused - decide if we want to do this in onStart?
+    async closeOpenFiles(): Promise<void> {
+        await this.shell.pendingUpdates;
+        for (const editorWidget of this.editorManager.all) {
+            editorWidget.close();
+        }
+    }
 
     //Set the file associations
     async setFileAssociations(): Promise<void> {
