@@ -6,6 +6,7 @@ import { ApplicationShell, FrontendApplicationContribution } from '@theia/core/l
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 import URI from '@theia/core/lib/common/uri'; 
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
+import { ResourceProvider } from '@theia/core/lib/common';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -24,6 +25,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     @inject(PreferenceService)
     protected readonly preferenceService: PreferenceService;  
+
+    @inject(ResourceProvider)
+    protected readonly resourceProvider!: ResourceProvider;
     
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
@@ -33,6 +37,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         window.addEventListener('message', this.handlePostMessage.bind(this));
         //Notify the parent that the extension is ready
         window.parent.postMessage({ type: 'extensionReady' }, '*');
+
+
         //Open the terminal in 1 second
         // setTimeout(() => {
         //     this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Console"}).then(async terminal => {
@@ -87,7 +93,30 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             window.parent.postMessage({ type: 'fileChanged', fileUri: fileUri }, '*');
         }
     }
-    
+
+    async createNewFile(filePath: string): Promise<void> {
+        const uri = new URI(filePath);
+        const resource = await this.resourceProvider(uri);
+        
+        if (resource.saveContents) {
+            await resource.saveContents('', { encoding: 'utf8' });
+        }
+    }
+
+    async saveCurrentFile(): Promise<void> {
+        const currentEditor = this.editorManager.currentEditor;
+        
+        if (currentEditor) {
+            const uri = currentEditor.editor.uri;
+            const resource = await this.resourceProvider(uri);
+            
+            if (resource.saveContents) {
+                const content = currentEditor.editor.document.getText();
+                await resource.saveContents(content, { encoding: 'utf8' });
+            }
+        }
+    }
+
     protected handlePostMessage(event: MessageEvent): void {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
@@ -101,8 +130,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     this.messageService.error(`Failed to open the file: ${error}`);
                 });
             }
+        } else if(event.data.type === 'newFile'){
+            const endpointName = event.data.endpointName;
+            const fileName = endpointName.replace("/", "-") + ".js";
+            this.createNewFile(fileName);
+        } else if(event.data.type === 'saveFile'){
+            this.saveCurrentFile();
         } else if(event.data.type === 'addPackage'){
-            console.log("addPackage " + event.data.packageName);
             const packageName = event.data.packageName;
             const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
             if(!terminalWidget){
