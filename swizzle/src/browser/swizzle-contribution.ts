@@ -32,7 +32,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/user-dependencies/";
+    private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
     // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
 
     onStart(): void {
@@ -43,20 +43,20 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
 
         //Open the terminal in 1 second
-        // setTimeout(() => {
-        //     this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Console"}).then(async terminal => {
-        //         try{
-        //             await terminal.start();
-        //             this.terminalService.open(terminal);
-        //             this.terminalWidgetId = terminal.id;
-        //        }catch(error){
-        //             console.log(error)
-        //         }
-        //     }).catch(error => {
-        //         this.messageService.error(`Failed to open the terminal: ${error}`);
-        //         console.log(error);
-        //     })
-        // }, 1000);
+        setTimeout(() => {
+            this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Console"}).then(async terminal => {
+                try{
+                    await terminal.start();
+                    this.terminalService.open(terminal);
+                    this.terminalWidgetId = terminal.id;
+               }catch(error){
+                    console.log(error)
+                }
+            }).catch(error => {
+                this.messageService.error(`Failed to open the terminal: ${error}`);
+                console.log(error);
+            })
+        }, 1000);
 
         //Set the file associations
         this.setFileAssociations();
@@ -109,7 +109,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     async openExistingFile(fileName: string): Promise<void> {
-        const fileUri = this.MAIN_DIRECTORY + fileName;
+        const fileUri = this.MAIN_DIRECTORY + "user-dependencies/" + fileName;
         if (fileUri) {
             this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
                 if (editorWidget) {
@@ -125,7 +125,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     async createNewFile(fileName: string): Promise<void> {
         try{
             console.log("newfile")
-            var filePath = this.MAIN_DIRECTORY + fileName
+            var filePath = this.MAIN_DIRECTORY + "user-dependencies/" + fileName
             const uri = new URI(filePath);
             const resource = await this.resourceProvider(uri);
 
