@@ -34,20 +34,20 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //Notify the parent that the extension is ready
         window.parent.postMessage({ type: 'extensionReady' }, '*');
         //Open the terminal in 1 second
-        setTimeout(() => {
-            this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Console"}).then(async terminal => {
-                try{
-                    await terminal.start();
-                    this.terminalService.open(terminal);
-                    this.terminalWidgetId = terminal.id;
-               }catch(error){
-                    console.log(error)
-                }
-            }).catch(error => {
-                this.messageService.error(`Failed to open the terminal: ${error}`);
-                console.log(error);
-            })
-        }, 1000);
+        // setTimeout(() => {
+        //     this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Console"}).then(async terminal => {
+        //         try{
+        //             await terminal.start();
+        //             this.terminalService.open(terminal);
+        //             this.terminalWidgetId = terminal.id;
+        //        }catch(error){
+        //             console.log(error)
+        //         }
+        //     }).catch(error => {
+        //         this.messageService.error(`Failed to open the terminal: ${error}`);
+        //         console.log(error);
+        //     })
+        // }, 1000);
 
         //Set the file associations
         this.setFileAssociations();
