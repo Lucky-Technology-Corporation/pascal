@@ -44,14 +44,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
 
     onStart(): void {
-        //Set the root
-        // this.workspaceService.addRoot(new URI(this.MAIN_DIRECTORY));
-
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
-
-        //Remove the localstorage
-        localStorage.removeItem('editor-navigation-contribution'); 
 
         this.stateService.reachedState('ready').then(() => {
             this.openTerminal();
@@ -207,7 +201,7 @@ module.exports = router;`
             if (resource.saveContents) {
                 const editorModel = currentEditor.editor.document;
                 if (editorModel) {
-                    const content = currentEditor.editor.document.getText();
+                    const content = editorModel.getText();
                     await resource.saveContents(content, { encoding: 'utf8' });
                 }
             }
@@ -225,13 +219,17 @@ module.exports = router;`
     protected handlePostMessage(event: MessageEvent): void {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
-            this.closeCurrentFile().then(() => {
-                this.openExistingFile(event.data.fileName)
-            });
+            // this.closeCurrentFile().then(() => {
+            //     this.openExistingFile(event.data.fileName)
+            // });
+            // this.saveCurrentFile();
+            this.openExistingFile(event.data.fileName)
         } else if(event.data.type === 'newFile'){
-            this.closeCurrentFile().then(() => {
-                this.createNewFile(event.data.fileName);
-            });
+            // this.closeCurrentFile().then(() => {
+            //     this.createNewFile(event.data.fileName);
+            // });
+            // this.saveCurrentFile();
+            this.createNewFile(event.data.fileName);
         } else if(event.data.type === 'saveFile'){
             this.saveCurrentFile();
         } else if(event.data.type === 'addPackage'){
