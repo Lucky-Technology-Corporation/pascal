@@ -178,7 +178,7 @@ router.${method}('/${endpoint}', async (request, result) => {
                 
                 var requireName = fileName.replace(".js", "").replace(/-/g, "_");
                 if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
-                var endpointPath = fileName.replace(".js", "").replace(/-/g, "/");
+                var endpointPath = fileName.replace(".js", "").replace(/-/g, "/").replace("get", "").replace("post", "").replace("put", "").replace("delete", "");
                 
                 const newContent = content
                     .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
