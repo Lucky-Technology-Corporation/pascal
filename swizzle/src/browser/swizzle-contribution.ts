@@ -38,13 +38,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     onStart(): void {
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
-        //Notify the parent that the extension is ready
-        window.parent.postMessage({ type: 'extensionReady' }, '*');
-
 
         //Open the terminal in 1 second
+        //TODO: Figure out how to just trigger this when the extension is actually ready
         setTimeout(() => {
-            this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Console"}).then(async terminal => {
+            this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Logs"}).then(async terminal => {
                 try{
                     await terminal.start();
                     this.terminalService.open(terminal);
@@ -56,6 +54,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 this.messageService.error(`Failed to open the terminal: ${error}`);
                 console.log(error);
             })
+            //Notify the parent that the extension is ready
+            window.parent.postMessage({ type: 'extensionReady' }, '*');
         }, 1000);
 
         //Set the file associations
@@ -63,7 +63,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));    
-        
     }
 
     async closeOpenFiles(): Promise<void> {
@@ -100,7 +99,21 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const editor = this.editorManager.currentEditor;
         if (editor) {
             const fileUri = editor.editor.uri.toString();
-            window.parent.postMessage({ type: 'fileChanged', fileUri: fileUri }, '*');
+            if (editor.editor instanceof MonacoEditor) {
+                const monacoEditor = editor.editor.getControl();
+                const model = monacoEditor.getModel();
+                const fileContents = model?.getValue() || '';
+    
+                const hasPassportAuth = fileContents.includes("passport.authenticate('jwt', { session: false })");
+                const hasGetDb = fileContents.includes("const db = getDb()");
+                
+                window.parent.postMessage({
+                    type: 'fileChanged',
+                    fileUri: fileUri,
+                    hasPassportAuth: hasPassportAuth,
+                    hasGetDb: hasGetDb
+                }, '*');
+            }
         }
     }
 
@@ -134,7 +147,7 @@ const router = express.Router();
 const passport = require('passport');
 //TODO: Add Swizzle NPM package!
 
-router.${method}('/${endpoint}', passport.authenticate('jwt', { session: false }), async (request, result) => {
+router.${method}('/${endpoint}', async (request, result) => {
 });`
 
             if (resource.saveContents) {
@@ -205,6 +218,44 @@ router.${method}('/${endpoint}', passport.authenticate('jwt', { session: false }
                 return;
             }
             terminalWidget.sendText(`npm install ${packageName} --save-dev`);
+        } else if(event.data.type === 'findAndReplace'){ 
+            const textToFind = event.data.findText;
+            const replaceWith = event.data.replaceText;
+            const currentEditorWidget = this.editorManager.currentEditor;
+            if (currentEditorWidget) {
+                const editor = currentEditorWidget.editor;
+            
+                if (editor instanceof MonacoEditor) {
+                    const monacoEditor = editor.getControl();
+                    const model = monacoEditor.getModel();
+
+                    if (model) {
+                        const docContent = model.getValue();
+                        const findStartIndex = docContent.indexOf(textToFind);
+            
+                        if (findStartIndex !== -1) {
+                            const findEndIndex = findStartIndex + textToFind.length;
+            
+                            const start = model.getPositionAt(findStartIndex);
+                            const end = model.getPositionAt(findEndIndex);
+            
+                            const findRange = {
+                                startLineNumber: start.lineNumber,
+                                startColumn: start.column,
+                                endLineNumber: end.lineNumber,
+                                endColumn: end.column
+                            };
+            
+                            // Execute replace
+                            model.pushEditOperations(
+                                [],
+                                [{ range: findRange, text: replaceWith, forceMoveMarkers: true }],
+                                () => null
+                            );
+                        }
+                    }
+                }
+            }            
         } else if(event.data.type === 'prependText'){
             console.log("prependText " + event.data.content);
             const content = event.data.content;
