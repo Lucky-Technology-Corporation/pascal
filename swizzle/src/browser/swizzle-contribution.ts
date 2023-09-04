@@ -163,8 +163,12 @@ const router = express.Router();
 const passport = require('passport');
 //TODO: Add Swizzle NPM package!
 
-router.${method}('/${endpoint}', async (request, result) => {
-});`
+router.${method}('/${endpoint}', async (request, response) => {
+    //Your code goes here
+    return response.json({ message: "It works!" });
+});
+
+module.exports = router;`
 
             if (resource.saveContents) {
                 await resource.saveContents(fileContent, { encoding: 'utf8' });
