@@ -7,6 +7,7 @@ import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-servi
 import URI from '@theia/core/lib/common/uri'; 
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
 import { ResourceProvider } from '@theia/core/lib/common';
+import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -28,6 +29,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     @inject(ResourceProvider)
     protected readonly resourceProvider!: ResourceProvider;
+
+    @inject(FrontendApplicationStateService)
+    protected readonly stateService: FrontendApplicationStateService;
+
     
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
@@ -39,24 +44,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
 
-        //Open the terminal in 1 second
-        //TODO: Figure out how to just trigger this when the extension is actually ready
-        setTimeout(() => {
-            this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Logs"}).then(async terminal => {
-                try{
-                    await terminal.start();
-                    this.terminalService.open(terminal);
-                    this.terminalWidgetId = terminal.id;
-               }catch(error){
-                    console.log(error)
-                }
-            }).catch(error => {
-                this.messageService.error(`Failed to open the terminal: ${error}`);
-                console.log(error);
-            })
-            //Notify the parent that the extension is ready
+        // //Open the terminal in 1 second
+        // //TODO: Figure out how to just trigger this when the extension is actually ready
+        // setTimeout(() => {
+            
+        // }, 1000);
+
+        this.stateService.reachedState('ready').then(() => {
+            this.openTerminal();
             window.parent.postMessage({ type: 'extensionReady' }, '*');
-        }, 1000);
+        });
 
         //Set the file associations
         this.setFileAssociations();
@@ -65,9 +62,23 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));    
     }
 
+    protected openTerminal(): void{
+        this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Logs"}).then(async terminal => {
+            try{
+                await terminal.start();
+                this.terminalService.open(terminal);
+                this.terminalWidgetId = terminal.id;
+           } catch(error){
+                console.log(error)
+            }
+        }).catch(error => {
+            this.messageService.error(`Failed to open the terminal: ${error}`);
+            console.log(error);
+        });
+    }
+
     async closeOpenFiles(): Promise<void> {
         for (const editorWidget of this.editorManager.all) {
-            console.log("Closing " + editorWidget.editor.uri.toString());
             editorWidget.close();
         }
     }
@@ -118,6 +129,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     async openExistingFile(fileName: string): Promise<void> {
+        if(fileName == undefined || fileName === ""){ return; }
         const fileUri = this.MAIN_DIRECTORY + "user-dependencies/" + fileName;
         if (fileUri) {
             this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
@@ -133,7 +145,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     //accepts something like get-path-to-api.js or post-.js
     async createNewFile(fileName: string): Promise<void> {
         try{
-            console.log("newfile")
             var filePath = this.MAIN_DIRECTORY + "user-dependencies/" + fileName
             const uri = new URI(filePath);
             const resource = await this.resourceProvider(uri);
@@ -167,7 +178,6 @@ router.${method}('/${endpoint}', async (request, result) => {
                 const newContent = content
                     .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
                     .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use("${endpointPath}", ${requireName});`);
-                console.log(newContent)
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
             }
 
@@ -192,8 +202,8 @@ router.${method}('/${endpoint}', async (request, result) => {
         }
     }
 
-    protected closeCurrentFile(): void {
-        this.saveCurrentFile();
+    protected async closeCurrentFile(): Promise<void> {
+        await this.saveCurrentFile();
         const editor = this.editorManager.currentEditor;
         if (editor) {
             editor.close();
@@ -203,11 +213,13 @@ router.${method}('/${endpoint}', async (request, result) => {
     protected handlePostMessage(event: MessageEvent): void {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
-            this.closeCurrentFile()
-            this.openExistingFile(event.data.fileName)
+            this.closeCurrentFile().then(() => {
+                this.openExistingFile(event.data.fileName)
+            });
         } else if(event.data.type === 'newFile'){
-            this.closeCurrentFile()
-            this.createNewFile(event.data.fileName);
+            this.closeCurrentFile().then(() => {
+                this.createNewFile(event.data.fileName);
+            });
         } else if(event.data.type === 'saveFile'){
             this.saveCurrentFile();
         } else if(event.data.type === 'addPackage'){
@@ -257,7 +269,6 @@ router.${method}('/${endpoint}', async (request, result) => {
                 }
             }            
         } else if(event.data.type === 'prependText'){
-            console.log("prependText " + event.data.content);
             const content = event.data.content;
             const currentEditorWidget = this.editorManager.currentEditor;
     
