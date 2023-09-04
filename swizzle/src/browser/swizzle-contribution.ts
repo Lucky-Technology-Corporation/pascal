@@ -8,6 +8,7 @@ import URI from '@theia/core/lib/common/uri';
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
 import { ResourceProvider } from '@theia/core/lib/common';
 import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
+import { WorkspaceService } from '@theia/workspace/lib/browser';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -33,7 +34,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     @inject(FrontendApplicationStateService)
     protected readonly stateService: FrontendApplicationStateService;
 
-    
+    @inject(WorkspaceService)
+    protected readonly workspaceService: WorkspaceService;
+
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
@@ -41,14 +44,14 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
 
     onStart(): void {
+        //Set the root
+        this.workspaceService.open(new URI(this.MAIN_DIRECTORY));
+
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
 
-        // //Open the terminal in 1 second
-        // //TODO: Figure out how to just trigger this when the extension is actually ready
-        // setTimeout(() => {
-            
-        // }, 1000);
+        //Remove the localstorage
+        localStorage.removeItem('editor-navigation-contribution'); 
 
         this.stateService.reachedState('ready').then(() => {
             this.openTerminal();
