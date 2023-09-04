@@ -40,12 +40,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
-    // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
+    // private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
+    private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
 
     onStart(): void {
         //Set the root
-        this.workspaceService.open(new URI(this.MAIN_DIRECTORY));
+        this.workspaceService.addRoot(new URI(this.MAIN_DIRECTORY));
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
@@ -70,6 +70,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             try{
                 await terminal.start();
                 this.terminalService.open(terminal);
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\n");
                 this.terminalWidgetId = terminal.id;
            } catch(error){
                 console.log(error)
@@ -110,6 +111,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     //Notify the parent that the current file has changed
     protected handleEditorChanged(): void {
+        if(!this.editorManager){ return; }
         const editor = this.editorManager.currentEditor;
         if (editor) {
             const fileUri = editor.editor.uri.toString();
@@ -199,8 +201,11 @@ router.${method}('/${endpoint}', async (request, result) => {
             const resource = await this.resourceProvider(uri);
             
             if (resource.saveContents) {
-                const content = currentEditor.editor.document.getText();
-                await resource.saveContents(content, { encoding: 'utf8' });
+                const editorModel = currentEditor.editor.document;
+                if (editorModel) {
+                    const content = currentEditor.editor.document.getText();
+                    await resource.saveContents(content, { encoding: 'utf8' });
+                }
             }
         }
     }
