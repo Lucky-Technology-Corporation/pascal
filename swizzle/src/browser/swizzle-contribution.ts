@@ -111,6 +111,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             const fileUri = editor.editor.uri.toString();
             if (editor.editor instanceof MonacoEditor) {
                 const monacoEditor = editor.editor.getControl();
+                console.log("monacoEditor1")
                 const model = monacoEditor.getModel();
                 const fileContents = model?.getValue() || '';
     
@@ -249,6 +250,7 @@ module.exports = router;`
             
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
+                    console.log("monacoEditor2")
                     const model = monacoEditor.getModel();
 
                     if (model) {
@@ -287,6 +289,7 @@ module.exports = router;`
     
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
+                    console.log("monacoEditor3")
                     const model = monacoEditor.getModel();
     
                     if (model && this.lastPrependedText) {
