@@ -40,12 +40,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    // private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
-    private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
+    private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
+    // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
 
     onStart(): void {
         //Set the root
-        this.workspaceService.addRoot(new URI(this.MAIN_DIRECTORY));
+        // this.workspaceService.addRoot(new URI(this.MAIN_DIRECTORY));
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
