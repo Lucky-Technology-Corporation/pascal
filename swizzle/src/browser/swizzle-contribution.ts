@@ -70,7 +70,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             try{
                 await terminal.start();
                 this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\n");
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\ntail -f app.log\n");
                 this.terminalWidgetId = terminal.id;
            } catch(error){
                 console.log(error)
