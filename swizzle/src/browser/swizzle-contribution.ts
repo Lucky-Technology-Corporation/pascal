@@ -64,8 +64,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             try{
                 await terminal.start();
                 this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\ntail -f app.log\n");
-                this.terminalWidgetId = terminal.id;
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\ntail -f app.log\n");
            } catch(error){
                 console.log(error)
             }
@@ -73,6 +72,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.messageService.error(`Failed to open the terminal: ${error}`);
             console.log(error);
         });
+
+        this.terminalService.newTerminal({hideFromUser: true, isTransient: true, title: "Packages"}).then(async terminal => {
+            try{
+                await terminal.start();
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\n");
+                this.terminalWidgetId = terminal.id;
+           } catch(error){
+                console.log(error)
+            }
+        })
     }
 
     async closeOpenFiles(): Promise<void> {
@@ -240,7 +249,7 @@ module.exports = router;`
                 this.messageService.error(`Terminal not found`);
                 return;
             }
-            terminalWidget.sendText(`npm install ${packageName} --save-dev`);
+            terminalWidget.sendText(`npm install ${packageName} --save-dev\n`);
         } else if(event.data.type === 'findAndReplace'){ 
             const textToFind = event.data.findText;
             const replaceWith = event.data.replaceText;

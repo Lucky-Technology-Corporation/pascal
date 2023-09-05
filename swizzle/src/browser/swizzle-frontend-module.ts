@@ -8,6 +8,8 @@ import { PluginVSCodeContribution } from '@theia/plugin-ext-vscode/lib/browser/p
 import { DebugService } from '@theia/debug/lib/common/debug-service';
 import { SwizzleEditorNavigationContribution } from './swizzle-editor-navigation-contribution';
 import { EditorNavigationContribution } from '@theia/editor/lib/browser/editor-navigation-contribution';
+import { MessageService } from '@theia/core/lib/common/message-service';
+import { NoOpMessageService } from './message-service';
 
 export default new ContainerModule((bind, unbind) => {
     bind(SwizzleContribution).toSelf().inSingletonScope();
@@ -17,6 +19,10 @@ export default new ContainerModule((bind, unbind) => {
 
     unbind(EditorNavigationContribution);
     bind(EditorNavigationContribution).to(SwizzleEditorNavigationContribution).inSingletonScope();
+    
+    unbind(MessageService);
+    bind(MessageService).to(NoOpMessageService).inSingletonScope();
+      
 
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
         onStart(): void {
