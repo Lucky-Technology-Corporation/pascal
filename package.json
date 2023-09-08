@@ -23,8 +23,8 @@
     "electron-app"
   ],
   "dependencies": {
-    "@theia/plugin-ext-vscode": "^1.40.0",
-    "@theia/userstorage": "^1.40.0",
-    "@theia/debug": "^1.40.0"
+    "@theia/plugin-ext-vscode": "latest",
+    "@theia/userstorage": "latest",
+    "@theia/debug": "latest"
   }
 }

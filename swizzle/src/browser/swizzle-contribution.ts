@@ -4,11 +4,12 @@ import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
 import { MessageService } from '@theia/core';
 import { ApplicationShell, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
-import URI from '@theia/core/lib/common/uri'; 
+import { URI } from '@theia/core/lib/common/uri';
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
 import { ResourceProvider } from '@theia/core/lib/common';
 import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
+import { CommandRegistry } from '@theia/core/lib/common/command';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -37,6 +38,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     @inject(WorkspaceService)
     protected readonly workspaceService: WorkspaceService;
 
+    @inject(CommandRegistry)
+    protected readonly commandRegistry: CommandRegistry;  
+
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
@@ -55,6 +59,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //Set the file associations
         this.setFileAssociations();
 
+        //Close file explorer if open
+        const fileExplorer = this.shell.getWidgets('left').find(w => w.id === 'navigator');
+        if (fileExplorer && fileExplorer.isVisible) {
+          this.commandRegistry.executeCommand('files.toggle');
+        }
+    
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));    
     }
@@ -64,7 +74,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             try{
                 await terminal.start();
                 this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\ntail -f app.log\n");
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\n");
+                terminal.sendText("tail -f app.log\n");
+
+                //Disable user input
+                const terminalElement = terminal.node.querySelector('.xterm-helper-textarea');
+                if (terminalElement) {
+                    terminalElement.setAttribute('readonly', 'true');
+                }
+            
            } catch(error){
                 console.log(error)
             }
@@ -249,7 +267,7 @@ module.exports = router;`
                 this.messageService.error(`Terminal not found`);
                 return;
             }
-            terminalWidget.sendText(`npm install ${packageName} --save-dev\n`);
+            terminalWidget.sendText(`npm install ${packageName} --save\n`);
         } else if(event.data.type === 'findAndReplace'){ 
             const textToFind = event.data.findText;
             const replaceWith = event.data.replaceText;

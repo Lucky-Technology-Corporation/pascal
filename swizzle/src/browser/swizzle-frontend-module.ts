@@ -23,6 +23,7 @@ export default new ContainerModule((bind, unbind) => {
     unbind(MessageService);
     bind(MessageService).to(NoOpMessageService).inSingletonScope();
       
+    // bind(TypeScriptContribution).toSelf().inSingletonScope();
 
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
         onStart(): void {

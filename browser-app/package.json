@@ -4,22 +4,21 @@
   "version": "0.0.0",
   "dependencies": {
     "@theia/core": "latest",
+    "@theia/debug": "latest",
     "@theia/editor": "latest",
     "@theia/filesystem": "latest",
     "@theia/markers": "latest",
     "@theia/messages": "latest",
     "@theia/monaco": "latest",
     "@theia/navigator": "latest",
-    "@theia/preferences": "latest",
-    "@theia/process": "latest",
-    "@theia/terminal": "latest",
-    "@theia/workspace": "latest",
-    "@theia/debug": "latest",
-
     "@theia/plugin": "latest",
     "@theia/plugin-ext": "latest",
     "@theia/plugin-ext-vscode": "latest",
+    "@theia/preferences": "latest",
+    "@theia/process": "latest",
+    "@theia/terminal": "latest",
     "@theia/userstorage": "latest",
+    "@theia/workspace": "latest",
     "swizzle": "0.0.0"
   },
   "devDependencies": {
