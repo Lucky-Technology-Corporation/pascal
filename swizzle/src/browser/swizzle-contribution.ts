@@ -60,10 +60,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.setFileAssociations();
 
         //Close file explorer if open
-        const fileExplorer = this.shell.getWidgets('left').find(w => w.id === 'navigator');
-        if (fileExplorer && fileExplorer.isVisible) {
-          this.commandRegistry.executeCommand('files.toggle');
-        }
+        //Not working? test again
+        
+        // const fileExplorer = this.shell.getWidgets('left').find(w => w.id === 'navigator');
+        // if (fileExplorer && fileExplorer.isVisible) {
+        //   this.commandRegistry.executeCommand('files.toggle');
+        // }
     
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));    
