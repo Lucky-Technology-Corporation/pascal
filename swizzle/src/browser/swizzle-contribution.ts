@@ -210,7 +210,7 @@ module.exports = router;`
                 
                 const newContent = content
                     .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
-                    .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use("${endpointPath}", ${requireName});`);
+                    .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
             }
 
