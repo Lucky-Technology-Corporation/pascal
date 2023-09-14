@@ -78,7 +78,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 await terminal.start();
                 this.terminalService.open(terminal);
                 terminal.sendText("cd " + this.MAIN_DIRECTORY + "\n");
+                terminal.sendText(`pkill -f "tail -f app.log"\n`);
                 terminal.sendText("tail -f app.log\n");
+                terminal.sendText("clear\n");
 
                 //Disable user input
                 const terminalElement = terminal.node.querySelector('.xterm-helper-textarea');
