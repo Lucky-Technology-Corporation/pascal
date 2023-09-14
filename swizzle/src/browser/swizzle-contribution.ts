@@ -82,7 +82,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 terminal.sendText("tail -f app.log\n");
                 terminal.sendText("clear\n");
 
-                //Disable user input
+                //Disable user input. TODO: I don't think this is working, not even sure if this is a good idea?
                 const terminalElement = terminal.node.querySelector('.xterm-helper-textarea');
                 if (terminalElement) {
                     terminalElement.setAttribute('readonly', 'true');
@@ -163,7 +163,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     async openExistingFile(fileName: string): Promise<void> {
         if(fileName == undefined || fileName === ""){ return; }
         await this.closeOpenFiles();
-        const fileUri = this.MAIN_DIRECTORY + "user-dependencies/" + fileName;
+        console.log(fileName)
+        const fileUri = this.MAIN_DIRECTORY + fileName;
+        console.log("opening " + fileUri)
         if (fileUri) {
             this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
                 if (editorWidget) {
@@ -176,46 +178,55 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     //accepts something like get-path-to-api.js or post-.js
-    async createNewFile(fileName: string): Promise<void> {
+    async createNewFile(relativeFilePath: string): Promise<void> {
         try{
-            var filePath = this.MAIN_DIRECTORY + "user-dependencies/" + fileName
+            var filePath = this.MAIN_DIRECTORY + relativeFilePath
             const uri = new URI(filePath);
             const resource = await this.resourceProvider(uri);
 
-            const method = fileName.split("-")[0];
-            const endpoint = fileName.replace(".js", "").split("-").slice(1).join("/")
+            var fileName = ""
+            if(relativeFilePath.includes("user-dependencies/")){
+                fileName = filePath.replace("user-dependencies/", "");
 
-            const fileContent = 
-`const express = require('express');
-const router = express.Router();
-const passport = require('passport');
-//TODO: Add Swizzle NPM package!
+                const method = fileName.split("-")[0];
+                const endpoint = fileName.replace(".js", "").split("-").slice(1).join("/")
 
-router.${method}('/${endpoint}', async (request, response) => {
-    //Your code goes here
-    return response.json({ message: "It works!" });
-});
+                const fileContent = starterEndpoint(method, endpoint);
 
-module.exports = router;`
+                if (resource.saveContents) {
+                    await resource.saveContents(fileContent, { encoding: 'utf8' });
+                }
 
-            if (resource.saveContents) {
-                await resource.saveContents(fileContent, { encoding: 'utf8' });
-            }
+                //add the reference to server.js
+                const serverUri = new URI(this.MAIN_DIRECTORY + "server.js");
+                const serverResource = await this.resourceProvider(serverUri);
+                if (serverResource.saveContents) {
+                    const content = await serverResource.readContents({ encoding: 'utf8' });
+                    
+                    var requireName = fileName.replace(".js", "").replace(/-/g, "_");
+                    if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
+                    
+                    const newContent = content
+                        .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
+                        .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
+                    await serverResource.saveContents(newContent, { encoding: 'utf8' });
+                }
+            } else if(relativeFilePath.includes("user-hosting/")){
 
-            //add the reference to server.js
-            const serverUri = new URI(this.MAIN_DIRECTORY + "server.js");
-            const serverResource = await this.resourceProvider(serverUri);
-            if (serverResource.saveContents) {
-                const content = await serverResource.readContents({ encoding: 'utf8' });
+                fileName = filePath.replace("user-hosting/", "");
                 
-                var requireName = fileName.replace(".js", "").replace(/-/g, "_");
-                if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
-                var endpointPath = fileName.replace(".js", "").replace(/-/g, "/").replace("get", "").replace("post", "").replace("put", "").replace("delete", "");
-                
-                const newContent = content
-                    .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
-                    .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
-                await serverResource.saveContents(newContent, { encoding: 'utf8' });
+                var fileContent = "";
+                var expressFilePath = fileName
+                if(fileName.includes(".html")){
+                    fileContent = starterHTML();
+                    expressFilePath = fileName.replace(".html", "");    
+                } else if(fileName.includes(".css")){
+                    fileContent = starterCSS()
+                }
+
+                if (resource.saveContents) {
+                    await resource.saveContents(fileContent, { encoding: 'utf8' });
+                }
             }
 
             this.openExistingFile(fileName)
@@ -257,6 +268,7 @@ module.exports = router;`
             //     this.openExistingFile(event.data.fileName)
             // });
             // this.saveCurrentFile();
+            console.log(JSON.stringify(event.data))
             this.openExistingFile(event.data.fileName)
         } else if(event.data.type === 'newFile'){
             // this.closeCurrentFile().then(() => {
