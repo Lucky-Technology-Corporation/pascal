@@ -53,6 +53,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         this.stateService.reachedState('ready').then(() => {
             this.openTerminal();
+            this.closeOpenFiles();
             window.parent.postMessage({ type: 'extensionReady' }, '*');
         });
 
@@ -159,6 +160,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     async openExistingFile(fileName: string): Promise<void> {
         if(fileName == undefined || fileName === ""){ return; }
+        await this.closeOpenFiles();
         const fileUri = this.MAIN_DIRECTORY + "user-dependencies/" + fileName;
         if (fileUri) {
             this.editorManager.open(new URI(fileUri)).then((editorWidget: EditorWidget) => {
