@@ -10,6 +10,7 @@ import { ResourceProvider } from '@theia/core/lib/common';
 import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { CommandRegistry } from '@theia/core/lib/common/command';
+import { starterEndpoint, starterCSS, starterHTML } from './swizzle-starter-code';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {

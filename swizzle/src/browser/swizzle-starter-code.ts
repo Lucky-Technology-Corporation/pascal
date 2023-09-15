@@ -1,4 +1,4 @@
-function starterEndpoint(method: string, endpoint: string){
+export function starterEndpoint(method: string, endpoint: string){
     const fileContent = 
 `const express = require('express');
 const router = express.Router();
@@ -15,7 +15,7 @@ module.exports = router;`
     return fileContent;
 }
 
-function starterHTML(){
+export function starterHTML(){
     const fileContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,10 +31,7 @@ function starterHTML(){
     return fileContent;
 }
 
-function starterCSS(){
+export function starterCSS(){
     const fileContent = `/* Your CSS here */`
     return fileContent;
 }
-
-
-module.exports = {starterEndpoint, starterHTML, starterCSS };
