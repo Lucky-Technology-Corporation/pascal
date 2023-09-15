@@ -14,21 +14,21 @@ import { starterEndpoint, starterCSS, starterHTML } from './swizzle-starter-code
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
-    
+
     @inject(EditorManager)
     protected readonly editorManager!: EditorManager;
-    
+
     @inject(MessageService)
     protected readonly messageService!: MessageService;
-    
+
     @inject(ApplicationShell)
     protected readonly shell!: ApplicationShell;
-    
+
     @inject(TerminalService)
     protected readonly terminalService!: TerminalService;
 
     @inject(PreferenceService)
-    protected readonly preferenceService: PreferenceService;  
+    protected readonly preferenceService: PreferenceService;
 
     @inject(ResourceProvider)
     protected readonly resourceProvider!: ResourceProvider;
@@ -40,7 +40,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     protected readonly workspaceService: WorkspaceService;
 
     @inject(CommandRegistry)
-    protected readonly commandRegistry: CommandRegistry;  
+    protected readonly commandRegistry: CommandRegistry;
 
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
@@ -63,24 +63,24 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         //Close file explorer if open
         //Not working? test again
-        
+
         // const fileExplorer = this.shell.getWidgets('left').find(w => w.id === 'navigator');
         // if (fileExplorer && fileExplorer.isVisible) {
         //   this.commandRegistry.executeCommand('files.toggle');
         // }
-    
+
         //Listen for file changes
-        this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));    
+        this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));
     }
 
-    protected openTerminal(): void{
-        this.terminalService.newTerminal({hideFromUser: false, isTransient: true, title: "Logs"}).then(async terminal => {
-            try{
+    protected openTerminal(): void {
+        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Logs" }).then(async terminal => {
+            try {
                 await terminal.start();
                 this.terminalService.open(terminal);
                 terminal.sendText("cd " + this.MAIN_DIRECTORY + "\n");
-                terminal.sendText(`pkill -f "tail -f app.log"\n`);
-                terminal.sendText("tail -f app.log\n");
+                terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
+                terminal.sendText("/app/tail-logs.sh app.log\n");
                 terminal.sendText("clear\n");
 
                 //Disable user input. TODO: I don't think this is working, not even sure if this is a good idea?
@@ -88,8 +88,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if (terminalElement) {
                     terminalElement.setAttribute('readonly', 'true');
                 }
-            
-           } catch(error){
+
+            } catch (error) {
                 console.log(error)
             }
         }).catch(error => {
@@ -97,12 +97,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             console.log(error);
         });
 
-        this.terminalService.newTerminal({hideFromUser: true, isTransient: true, title: "Packages"}).then(async terminal => {
-            try{
+        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, title: "Packages" }).then(async terminal => {
+            try {
                 await terminal.start();
                 terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\n");
                 this.terminalWidgetId = terminal.id;
-           } catch(error){
+            } catch (error) {
                 console.log(error)
             }
         })
@@ -133,12 +133,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             "*.scss": "scss",
         };
         await this.preferenceService.set('files.associations', newAssociations, PreferenceScope.User);
-      }
-    
+    }
+
 
     //Notify the parent that the current file has changed
     protected handleEditorChanged(): void {
-        if(!this.editorManager){ return; }
+        if (!this.editorManager) { return; }
         const editor = this.editorManager.currentEditor;
         if (editor) {
             const fileUri = editor.editor.uri.toString();
@@ -147,10 +147,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 console.log("monacoEditor1")
                 const model = monacoEditor.getModel();
                 const fileContents = model?.getValue() || '';
-    
+
                 const hasPassportAuth = fileContents.includes("passport.authenticate('jwt', { session: false })");
                 const hasGetDb = fileContents.includes("const db = getDb()");
-                
+
                 window.parent.postMessage({
                     type: 'fileChanged',
                     fileUri: fileUri,
@@ -162,7 +162,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     async openExistingFile(fileName: string): Promise<void> {
-        if(fileName == undefined || fileName === ""){ return; }
+        if (fileName == undefined || fileName === "") { return; }
         await this.closeOpenFiles();
         console.log(fileName)
         const fileUri = this.MAIN_DIRECTORY + fileName;
@@ -180,7 +180,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     //accepts something like get-path-to-api.js or post-.js
     async createNewFile(relativeFilePath: string): Promise<void> {
-        try{
+        try {
             var filePath = this.MAIN_DIRECTORY + relativeFilePath
             const uri = new URI(filePath);
             const resource = await this.resourceProvider(uri);
@@ -220,14 +220,14 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
                     await serverResource.saveContents(newContent, { encoding: 'utf8' });
                 }
-            } else if(relativeFilePath.includes("user-hosting/")){
+            } else if (relativeFilePath.includes("user-hosting/")) {
 
                 fileName = filePath.replace("user-hosting/", "");
-                
+
                 var fileContent = "";
-                if(fileName.includes(".html")){
+                if (fileName.includes(".html")) {
                     fileContent = starterHTML();
-                } else if(fileName.includes(".css")){
+                } else if (fileName.includes(".css")) {
                     fileContent = starterCSS()
                 }
 
@@ -238,18 +238,18 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
             this.openExistingFile(fileName)
 
-        } catch(error){
+        } catch (error) {
             console.log(error)
         }
     }
 
     async saveCurrentFile(): Promise<void> {
         const currentEditor = this.editorManager.currentEditor;
-        
+
         if (currentEditor) {
             const uri = currentEditor.editor.uri;
             const resource = await this.resourceProvider(uri);
-            
+
             if (resource.saveContents) {
                 const editorModel = currentEditor.editor.document;
                 if (editorModel) {
@@ -277,29 +277,29 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             // this.saveCurrentFile();
             console.log(JSON.stringify(event.data))
             this.openExistingFile(event.data.fileName)
-        } else if(event.data.type === 'newFile'){
+        } else if (event.data.type === 'newFile') {
             // this.closeCurrentFile().then(() => {
             //     this.createNewFile(event.data.fileName);
             // });
             // this.saveCurrentFile();
             this.createNewFile(event.data.fileName);
-        } else if(event.data.type === 'saveFile'){
+        } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
-        } else if(event.data.type === 'addPackage'){
+        } else if (event.data.type === 'addPackage') {
             const packageName = event.data.packageName;
             const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
-            if(!terminalWidget){
+            if (!terminalWidget) {
                 this.messageService.error(`Terminal not found`);
                 return;
             }
             terminalWidget.sendText(`npm install ${packageName} --save\n`);
-        } else if(event.data.type === 'findAndReplace'){ 
+        } else if (event.data.type === 'findAndReplace') {
             const textToFind = event.data.findText;
             const replaceWith = event.data.replaceText;
             const currentEditorWidget = this.editorManager.currentEditor;
             if (currentEditorWidget) {
                 const editor = currentEditorWidget.editor;
-            
+
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
                     console.log("monacoEditor2")
@@ -308,20 +308,20 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     if (model) {
                         const docContent = model.getValue();
                         const findStartIndex = docContent.indexOf(textToFind);
-            
+
                         if (findStartIndex !== -1) {
                             const findEndIndex = findStartIndex + textToFind.length;
-            
+
                             const start = model.getPositionAt(findStartIndex);
                             const end = model.getPositionAt(findEndIndex);
-            
+
                             const findRange = {
                                 startLineNumber: start.lineNumber,
                                 startColumn: start.column,
                                 endLineNumber: end.lineNumber,
                                 endColumn: end.column
                             };
-            
+
                             // Execute replace
                             model.pushEditOperations(
                                 [],
@@ -331,29 +331,29 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         }
                     }
                 }
-            }            
-        } else if(event.data.type === 'prependText'){
+            }
+        } else if (event.data.type === 'prependText') {
             const content = event.data.content;
             const currentEditorWidget = this.editorManager.currentEditor;
-    
+
             if (currentEditorWidget) {
                 const editor = currentEditorWidget.editor;
-    
+
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
                     console.log("monacoEditor3")
                     const model = monacoEditor.getModel();
-    
+
                     if (model && this.lastPrependedText) {
                         const oldContent = model.getValue();
                         const startIndex = oldContent.indexOf(this.lastPrependedText);
-    
+
                         if (startIndex !== -1) {
                             const endIndex = startIndex + this.lastPrependedText.length;
                             const start = model.getPositionAt(startIndex);
                             const end = model.getPositionAt(endIndex);
                             const range = { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column };
-    
+
                             model.pushEditOperations(
                                 [],
                                 [{ range: range, text: '', forceMoveMarkers: true }],
@@ -361,7 +361,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                             );
                         }
                     }
-    
+
                     if (content && content !== "") {
                         // Prepend new content
                         const prependEdit = {
@@ -370,9 +370,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                             text: content,
                             forceMoveMarkers: true
                         };
-    
+
                         model?.pushEditOperations([], [prependEdit], () => null);
-    
+
                         // Save the prepended text for future removal
                         this.lastPrependedText = content;
                     } else {
@@ -381,7 +381,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     }
                 }
             }
-            
+
         }
     }
 }
