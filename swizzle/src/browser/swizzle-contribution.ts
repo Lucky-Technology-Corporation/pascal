@@ -210,7 +210,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     
                     //Remove the path
                     const lastIndex = requireName.lastIndexOf("/");
-                    requireName = fileName.substring(lastIndex + 1);
+                    requireName = requireName.substring(lastIndex + 1);
                     
                     //Remove leading underscore
                     if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
