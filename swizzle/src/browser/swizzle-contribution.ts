@@ -186,8 +186,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             const resource = await this.resourceProvider(uri);
 
             var fileName = ""
-            if (relativeFilePath.includes("user-dependencies/")) {
-                fileName = filePath.replace("user-dependencies/", "");
+            if(relativeFilePath.includes("user-dependencies/")){
+                const lastIndex = relativeFilePath.lastIndexOf("/");
+                fileName = relativeFilePath.substring(lastIndex + 1);
 
                 const method = fileName.split("-")[0];
                 const endpoint = fileName.replace(".js", "").split("-").slice(1).join("/")
@@ -203,10 +204,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const serverResource = await this.resourceProvider(serverUri);
                 if (serverResource.saveContents) {
                     const content = await serverResource.readContents({ encoding: 'utf8' });
-
+                    
+                    //Remove extension and replace dashes with underscores
                     var requireName = fileName.replace(".js", "").replace(/-/g, "_");
-                    if (requireName.startsWith("_")) { requireName = requireName.substring(1); }
-
+                    
+                    //Remove the path
+                    const lastIndex = requireName.lastIndexOf("/");
+                    requireName = fileName.substring(lastIndex + 1);
+                    
+                    //Remove leading underscore
+                    if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
+                    
                     const newContent = content
                         .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
                         .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
