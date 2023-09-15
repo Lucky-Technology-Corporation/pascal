@@ -216,10 +216,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 fileName = filePath.replace("user-hosting/", "");
                 
                 var fileContent = "";
-                var expressFilePath = fileName
                 if(fileName.includes(".html")){
                     fileContent = starterHTML();
-                    expressFilePath = fileName.replace(".html", "");    
                 } else if(fileName.includes(".css")){
                     fileContent = starterCSS()
                 }
