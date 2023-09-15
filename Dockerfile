@@ -1,5 +1,5 @@
 FROM node:18
-RUN apt-get update && apt-get install -y libsecret-1-dev libxkbfile-dev
+RUN apt-get update && apt-get install -y libsecret-1-dev libxkbfile-dev jq
 WORKDIR /app
 COPY . .
 ENV THEIA_ELECTRON_SKIP_REPLACE_FFMPEG=1
