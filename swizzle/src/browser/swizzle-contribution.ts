@@ -302,7 +302,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
-                    console.log("monacoEditor2")
                     const model = monacoEditor.getModel();
 
                     if (model) {
@@ -381,7 +380,23 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     }
                 }
             }
-
+        } else if (event.data.type === 'replaceText') {
+            const newContent = event.data.content;
+            const currentEditorWidget = this.editorManager.currentEditor;
+        
+            if (currentEditorWidget) {
+                const editor = currentEditorWidget.editor;
+        
+                if (editor instanceof MonacoEditor) {
+                    const monacoEditor = editor.getControl();
+                    const model = monacoEditor.getModel();
+        
+                    if (model) {
+                        // Replace entire content
+                        model.setValue(newContent);
+                    }
+                }
+            }        
         }
     }
 }
