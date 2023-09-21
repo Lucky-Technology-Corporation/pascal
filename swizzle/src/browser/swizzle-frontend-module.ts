@@ -10,6 +10,8 @@ import { SwizzleEditorNavigationContribution } from './swizzle-editor-navigation
 import { EditorNavigationContribution } from '@theia/editor/lib/browser/editor-navigation-contribution';
 import { MessageService } from '@theia/core/lib/common/message-service';
 import { NoOpMessageService } from './message-service';
+import { WorkspaceTrustService } from '@theia/workspace/lib/browser/workspace-trust-service';
+import { NoOpTrustService } from './trust-service';
 
 export default new ContainerModule((bind, unbind) => {
     bind(SwizzleContribution).toSelf().inSingletonScope();
@@ -22,8 +24,9 @@ export default new ContainerModule((bind, unbind) => {
     
     unbind(MessageService);
     bind(MessageService).to(NoOpMessageService).inSingletonScope();
-      
-    // bind(TypeScriptContribution).toSelf().inSingletonScope();
+
+    unbind(WorkspaceTrustService);
+    bind(WorkspaceTrustService).to(NoOpTrustService).inSingletonScope();
 
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
         onStart(): void {
