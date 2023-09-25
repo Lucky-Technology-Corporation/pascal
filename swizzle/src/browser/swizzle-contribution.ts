@@ -56,6 +56,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.openTerminal();
             this.closeOpenFiles();
             window.parent.postMessage({ type: 'extensionReady' }, '*');
+            console.log("Swizzle editor extension ready")
         });
 
         //Set the file associations
@@ -89,6 +90,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     terminalElement.setAttribute('readonly', 'true');
                 }
 
+                console.log("Opened log terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
             }
@@ -102,6 +104,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 await terminal.start();
                 terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\n");
                 this.terminalWidgetId = terminal.id;
+                console.log("Opened package terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
             }
