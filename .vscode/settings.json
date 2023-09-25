@@ -1,5 +1,6 @@
 {
     "typescript.tsdk": "node_modules/typescript/lib",
-    "javascript.implicitProjectConfig.experimentalDecorators": true
+    "javascript.implicitProjectConfig.experimentalDecorators": true,
+    "tabby.api.endpoint": "http://tabby.swizzle.co:8081"
 }
   
