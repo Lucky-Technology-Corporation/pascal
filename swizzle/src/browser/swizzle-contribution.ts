@@ -81,6 +81,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 this.terminalService.open(terminal);
                 terminal.sendText("cd " + this.MAIN_DIRECTORY + "\n");
                 terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
+                terminal.sendText("chmod +x /app/tail-logs.sh\n");
                 terminal.sendText("/app/tail-logs.sh app.log\n");
                 terminal.sendText("clear\n");
 
@@ -147,18 +148,21 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             const fileUri = editor.editor.uri.toString();
             if (editor.editor instanceof MonacoEditor) {
                 const monacoEditor = editor.editor.getControl();
-                console.log("monacoEditor1")
                 const model = monacoEditor.getModel();
                 const fileContents = model?.getValue() || '';
 
-                const hasPassportAuth = fileContents.includes("passport.authenticate('jwt', { session: false })");
-                const hasGetDb = fileContents.includes("const db = getDb()");
+                const hasPassportAuth = fileContents.includes("requiredAuthentication");
+                const hasGetDb = fileContents.includes("const { db } = require('swizzle-js')");
+                const hasNotification = fileContents.includes("const { sendNotification } = require('swizzle-js')");
+                const hasStorage = fileContents.includes("const { saveFile, getFile, deleteFile } = require('swizzle-js')");
 
                 window.parent.postMessage({
                     type: 'fileChanged',
                     fileUri: fileUri,
                     hasPassportAuth: hasPassportAuth,
-                    hasGetDb: hasGetDb
+                    hasGetDb: hasGetDb,
+                    hasNotification: hasNotification,
+                    hasStorage: hasStorage
                 }, '*');
             }
         }
@@ -274,17 +278,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     protected handlePostMessage(event: MessageEvent): void {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
-            // this.closeCurrentFile().then(() => {
-            //     this.openExistingFile(event.data.fileName)
-            // });
-            // this.saveCurrentFile();
-            console.log(JSON.stringify(event.data))
             this.openExistingFile(event.data.fileName)
         } else if (event.data.type === 'newFile') {
-            // this.closeCurrentFile().then(() => {
-            //     this.createNewFile(event.data.fileName);
-            // });
-            // this.saveCurrentFile();
             this.createNewFile(event.data.fileName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
@@ -351,7 +346,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
-                    console.log("monacoEditor3")
                     const model = monacoEditor.getModel();
 
                     if (model && this.lastPrependedText) {
