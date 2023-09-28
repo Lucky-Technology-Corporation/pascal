@@ -2,10 +2,9 @@ export function starterEndpoint(method: string, endpoint: string){
     const fileContent = 
 `const express = require('express');
 const router = express.Router();
-const passport = require('passport');
-//TODO: Add Swizzle NPM package!
+const { optionalAuthentication } = require('swizzle-js');
 
-router.${method}('/${endpoint}', async (request, response) => {
+router.${method}('/${endpoint}', optionalAuthentication, async (request, response) => {
     //Your code goes here
     return response.json({ message: "It works!" });
 });
