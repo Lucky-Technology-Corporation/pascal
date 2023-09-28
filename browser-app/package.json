@@ -36,6 +36,11 @@
       "config": {
         "defaultTheme": "dark"
       }
+    },
+    "generator": {
+      "config": {
+        "preloadTemplate": "../preload.html"
+      }
     }
   }
 }

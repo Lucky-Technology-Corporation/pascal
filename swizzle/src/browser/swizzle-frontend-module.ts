@@ -29,11 +29,6 @@ export default new ContainerModule((bind, unbind) => {
     bind(WorkspaceTrustService).to(NoOpTrustService).inSingletonScope();
 
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
-        initialize(): void {
-            const urlParams = new URLSearchParams(window.location.search);
-            const jwt = urlParams.get('jwt');          
-            document.cookie = `jwt=${jwt}; path=/;`;    
-        },
         onStart(): void {
             const style = document.createElement('style');
             style.type = 'text/css';
