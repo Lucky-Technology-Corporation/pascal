@@ -1,8 +1,15 @@
 steps:
-  # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/swizzle-prod/pascal/pascal:latest', '.']
+    args: ['build', 
+      '-t', '$_AR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA', 
+      '-t', '$_AR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:latest', 
+      '.']
 
-  # Push the Docker image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/swizzle-prod/pascal/pascal:latest']
+images:
+  - '$_AR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+  - '$_AR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:latest'
+
+substitutions:
+  _SERVICE_NAME: pascal
+  _AR_HOSTNAME: us-central1-docker.pkg.dev
+
