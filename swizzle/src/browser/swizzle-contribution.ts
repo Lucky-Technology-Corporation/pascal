@@ -1,8 +1,8 @@
 import { injectable, inject } from '@theia/core/shared/inversify';
 import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
 import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
-import { MessageService } from '@theia/core';
-import { ApplicationShell, FrontendApplicationContribution } from '@theia/core/lib/browser';
+import { MaybePromise, MessageService } from '@theia/core';
+import { ApplicationShell, FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 import { URI } from '@theia/core/lib/common/uri';
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
@@ -46,9 +46,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private terminalWidgetId: string = "";
 
     private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
-    // private readonly MAIN_DIRECTORY = "/Users/adam/Downloads/";
 
-    onStart(): void {
+    onStart(app: FrontendApplication): MaybePromise<void> {
+        //set the jwt
+        console.log("Theia FrontendApplication onStart")
+
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
 
@@ -283,6 +285,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.createNewFile(event.data.fileName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
+        } else if (event.data.type === 'saveCookie') {
+            const cookieValue = event.data.cookieValue;
+            const cookieName = event.data.cookieName;
+            document.cookie = cookieName+"="+cookieValue+"; path=/";
         } else if (event.data.type === 'addPackage') {
             const packageName = event.data.packageName;
             const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)

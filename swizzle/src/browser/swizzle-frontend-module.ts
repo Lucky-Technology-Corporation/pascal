@@ -29,7 +29,15 @@ export default new ContainerModule((bind, unbind) => {
     bind(WorkspaceTrustService).to(NoOpTrustService).inSingletonScope();
 
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
+        initialize(): void {
+            const urlParams = new URLSearchParams(window.location.search);
+            const jwt = urlParams.get('jwt');          
+            console.log(urlParams)
+            console.log(jwt)
+            document.cookie = `jwt=${jwt}; path=/;`;    
+        },
         onStart(): void {
+            console.log("this onStart")
             const style = document.createElement('style');
             style.type = 'text/css';
             style.innerHTML = '.theia-tabBar-breadcrumb-row{display:none!important}.theia-app-main{background:var(--theia-editor-background)!important}'
