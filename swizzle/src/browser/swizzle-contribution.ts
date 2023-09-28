@@ -309,36 +309,43 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             const textToFind = event.data.findText;
             const replaceWith = event.data.replaceText;
             const currentEditorWidget = this.editorManager.currentEditor;
+        
             if (currentEditorWidget) {
                 const editor = currentEditorWidget.editor;
-
+        
                 if (editor instanceof MonacoEditor) {
                     const monacoEditor = editor.getControl();
                     const model = monacoEditor.getModel();
-
+        
                     if (model) {
                         const docContent = model.getValue();
-                        const findStartIndex = docContent.indexOf(textToFind);
-
-                        if (findStartIndex !== -1) {
+                        let findStartIndex = docContent.indexOf(textToFind);
+                        const editOperations = [];
+        
+                        while (findStartIndex !== -1) {
                             const findEndIndex = findStartIndex + textToFind.length;
-
                             const start = model.getPositionAt(findStartIndex);
                             const end = model.getPositionAt(findEndIndex);
-
+        
                             const findRange = {
                                 startLineNumber: start.lineNumber,
                                 startColumn: start.column,
                                 endLineNumber: end.lineNumber,
                                 endColumn: end.column
                             };
-
-                            // Execute replace
-                            model.pushEditOperations(
-                                [],
-                                [{ range: findRange, text: replaceWith, forceMoveMarkers: true }],
-                                () => null
-                            );
+        
+                            editOperations.push({
+                                range: findRange,
+                                text: replaceWith,
+                                forceMoveMarkers: true
+                            });
+        
+                            findStartIndex = docContent.indexOf(textToFind, findEndIndex);
+                        }
+        
+                        // Execute all replace operations
+                        if (editOperations.length > 0) {
+                            model.pushEditOperations([], editOperations, () => null);
                         }
                     }
                 }
