@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <script>
-            const urlParams = new URLSearchParams(window.location.search);
-            const jwt = urlParams.get('jwt');          
-            document.cookie = `jwt=${jwt}; path=/;`;    
-        </script>
-        <title>Swizzle is loading...</title>
-    </head>
-    <body>
-    </body>
-</html>
+<script type="text/javascript">
+    const urlParams = new URLSearchParams(window.location.search);
+    const jwt = urlParams.get('jwt');          
+    document.cookie = `jwt=${jwt}; path=/;`;    
+</script>
