@@ -188,7 +188,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     //accepts something like get-path-to-api.js or post-.js
-    async createNewFile(relativeFilePath: string): Promise<void> {
+    async createNewFile(relativeFilePath: string, endpointName: string): Promise<void> {
         try {
             var filePath = this.MAIN_DIRECTORY + relativeFilePath
             const uri = new URI(filePath);
@@ -199,8 +199,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const lastIndex = relativeFilePath.lastIndexOf("/");
                 fileName = relativeFilePath.substring(lastIndex + 1);
 
-                const method = fileName.split("-")[0];
-                const endpoint = fileName.replace(".js", "").split("-").slice(1).join("/")
+                const method = endpointName.split("/")[0];
+                const endpoint = endpointName.split("/")[1];
 
                 const fileContent = starterEndpoint(method, endpoint);
 
@@ -221,8 +221,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const lastIndex = requireName.lastIndexOf("/");
                     requireName = requireName.substring(lastIndex + 1);
                     
+                    //TODO: check this
                     //Remove leading underscore
-                    if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
+                    // if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
                     
                     const newContent = content
                         .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
@@ -282,7 +283,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         if (event.data.type === 'openFile') {
             this.openExistingFile(event.data.fileName)
         } else if (event.data.type === 'newFile') {
-            this.createNewFile(event.data.fileName);
+            this.createNewFile(event.data.fileName, event.data.endopintName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
         } else if (event.data.type === 'saveCookie') {
