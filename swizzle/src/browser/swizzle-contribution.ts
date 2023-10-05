@@ -1,16 +1,16 @@
-import { injectable, inject } from '@theia/core/shared/inversify';
-import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
-import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
 import { MaybePromise, MessageService } from '@theia/core';
 import { ApplicationShell, FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
-import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
-import { URI } from '@theia/core/lib/common/uri';
+import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
 import { ResourceProvider } from '@theia/core/lib/common';
-import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
-import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { CommandRegistry } from '@theia/core/lib/common/command';
-import { starterEndpoint, starterCSS, starterHTML } from './swizzle-starter-code';
+import { URI } from '@theia/core/lib/common/uri';
+import { inject, injectable } from '@theia/core/shared/inversify';
+import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
+import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
+import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
+import { WorkspaceService } from '@theia/workspace/lib/browser';
+import { starterCSS, starterEndpoint, starterHTML } from './swizzle-starter-code';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -45,11 +45,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/home/swizzle_prod_user/code/";
+    private readonly MAIN_DIRECTORY = "/home/swizzle/code/";
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         //set the jwt
         console.log("Theia FrontendApplication onStart")
+
+        //Autosave preferences
+        this.preferenceService.set('files.autoSave', 'afterDelay');
+        this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
@@ -244,6 +248,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
+            } else if (relativeFilePath.includes("user-helpers/")) {
+
+                fileName = filePath.replace("/user-helpers/", "");
+
+                var fileContent = `global.${fileName} = function() {\n\n}`;
+
+                if (resource.saveContents) {
+                    await resource.saveContents(fileContent, { encoding: 'utf8' });
+                }
             }
 
             this.openExistingFile(fileName)
@@ -268,6 +281,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
             }
         }
+
+        return
     }
 
     protected async closeCurrentFile(): Promise<void> {
@@ -278,14 +293,18 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
-    protected handlePostMessage(event: MessageEvent): void {
+    protected async handlePostMessage(event: MessageEvent): Promise<void> {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
+            await this.saveCurrentFile();
             this.openExistingFile(event.data.fileName)
         } else if (event.data.type === 'newFile') {
+            await this.saveCurrentFile();
             this.createNewFile(event.data.fileName, event.data.endopintName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
+        } else if (event.data.type === 'reloadServer') {
+            
         } else if (event.data.type === 'saveCookie') {
             const cookieValue = event.data.cookieValue;
             const cookieName = event.data.cookieName;
