@@ -51,9 +51,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //set the jwt
         console.log("Theia FrontendApplication onStart")
 
-        //Autosave preferences
-        this.preferenceService.set('files.autoSave', 'afterDelay');
-        this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
+        // //Autosave preferences
+        // this.preferenceService.set('files.autoSave', 'afterDelay');
+        // this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
@@ -176,7 +176,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     async openExistingFile(fileName: string): Promise<void> {
         if (fileName == undefined || fileName === "") { return; }
-        await this.closeCurrentFile();
+        // await this.closeCurrentFile();
         const fileUri = this.MAIN_DIRECTORY + fileName;
         console.log("opening " + fileUri)
         if (fileUri) {
@@ -295,10 +295,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     protected async handlePostMessage(event: MessageEvent): Promise<void> {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
-            await this.saveCurrentFile();
+            this.saveCurrentFile();
             this.openExistingFile(event.data.fileName)
         } else if (event.data.type === 'newFile') {
-            await this.saveCurrentFile();
+            this.saveCurrentFile();
             this.createNewFile(event.data.fileName, event.data.endpointName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
