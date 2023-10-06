@@ -300,7 +300,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.openExistingFile(event.data.fileName)
         } else if (event.data.type === 'newFile') {
             await this.saveCurrentFile();
-            this.createNewFile(event.data.fileName, event.data.endopintName);
+            this.createNewFile(event.data.fileName, event.data.endpointName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
         } else if (event.data.type === 'reloadServer') {

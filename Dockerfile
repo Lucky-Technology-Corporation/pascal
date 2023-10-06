@@ -7,4 +7,4 @@ RUN yarn && \
     yarn --cwd browser-app theia clean && \
     yarn --cwd browser-app theia build
 EXPOSE 3000
-ENTRYPOINT ["node", "/app/browser-app/src-gen/backend/main.js", "/home/root", "--hostname=0.0.0.0", "--plugins=local-dir:/app/plugins"]
+ENTRYPOINT ["node", "/app/browser-app/src-gen/backend/main.js", "/home/swizzle/code/", "--hostname=0.0.0.0", "--plugins=local-dir:/app/plugins"]
