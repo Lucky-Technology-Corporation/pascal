@@ -51,8 +51,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //set the jwt
         console.log("Theia FrontendApplication onStart")
 
-        localStorage.clear()
-
         // //Autosave preferences
         this.preferenceService.set('files.autoSave', 'onFocusChange');
         // this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
