@@ -52,7 +52,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         console.log("Theia FrontendApplication onStart")
 
         // //Autosave preferences
-        // this.preferenceService.set('files.autoSave', 'afterDelay');
+        this.preferenceService.set('files.autoSave', 'onFocusChange');
         // this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
 
         //Listen for incoming messages 
@@ -295,10 +295,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     protected async handlePostMessage(event: MessageEvent): Promise<void> {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
-            this.saveCurrentFile();
+            // this.saveCurrentFile();
             this.openExistingFile(event.data.fileName)
         } else if (event.data.type === 'newFile') {
-            this.saveCurrentFile();
+            // this.saveCurrentFile();
             this.createNewFile(event.data.fileName, event.data.endpointName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
