@@ -51,6 +51,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //set the jwt
         console.log("Theia FrontendApplication onStart")
 
+        localStorage.clear()
+
         // //Autosave preferences
         this.preferenceService.set('files.autoSave', 'onFocusChange');
         // this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
@@ -77,11 +79,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));
-    }
-
-    async restoreLayout(app: FrontendApplication): Promise<boolean> {
-        console.log("Theia FrontendApplication restoreLayout")
-        return false;
     }
 
     protected openTerminal(): void {
