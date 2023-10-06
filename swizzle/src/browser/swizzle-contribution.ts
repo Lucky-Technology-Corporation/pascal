@@ -60,7 +60,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         this.stateService.reachedState('ready').then(() => {
             this.openTerminal();
-            this.closeOpenFiles();
             window.parent.postMessage({ type: 'extensionReady' }, '*');
             console.log("Swizzle editor extension ready")
         });
@@ -118,11 +117,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         })
     }
 
-    async closeOpenFiles(): Promise<void> {
-        for (const editorWidget of this.editorManager.all) {
-            editorWidget.close();
-        }
-    }
+    // async closeOpenFiles(): Promise<void> {
+    //     console.log("Close open files")
+    //     for (const editorWidget of this.editorManager.all) {
+    //         editorWidget.close();
+    //     }
+    // }
 
     //Set the file associations
     async setFileAssociations(): Promise<void> {
@@ -176,8 +176,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     async openExistingFile(fileName: string): Promise<void> {
         if (fileName == undefined || fileName === "") { return; }
-        await this.closeOpenFiles();
-        console.log(fileName)
+        await this.closeCurrentFile();
         const fileUri = this.MAIN_DIRECTORY + fileName;
         console.log("opening " + fileUri)
         if (fileUri) {
@@ -287,10 +286,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     protected async closeCurrentFile(): Promise<void> {
         await this.saveCurrentFile();
-        const editor = this.editorManager.currentEditor;
-        if (editor) {
-            editor.close();
-        }
+        const editorWidget = this.editorManager.currentEditor;
+        if (editorWidget) {
+            this.shell.closeWidget(editorWidget.id);
+        }    
     }
 
     protected async handlePostMessage(event: MessageEvent): Promise<void> {
