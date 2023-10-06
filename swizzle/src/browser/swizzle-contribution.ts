@@ -45,7 +45,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/home/swizzle/code/";
+    private readonly MAIN_DIRECTORY = "/swizzle/code/";
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         //set the jwt
