@@ -79,6 +79,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));
     }
 
+    async restoreLayout(app: FrontendApplication): Promise<boolean> {
+        console.log("Theia FrontendApplication restoreLayout")
+        return false;
+    }
+
     protected openTerminal(): void {
         this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Logs" }).then(async terminal => {
             try {
