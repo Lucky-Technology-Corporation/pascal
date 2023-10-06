@@ -51,6 +51,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         //set the jwt
         console.log("Theia FrontendApplication onStart")
 
+        localStorage.clear()
+
         // //Autosave preferences
         this.preferenceService.set('files.autoSave', 'onFocusChange');
         // this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
@@ -61,6 +63,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.stateService.reachedState('ready').then(() => {
             this.openTerminal();
             window.parent.postMessage({ type: 'extensionReady' }, '*');
+
+            if(document.getElementById("theia-top-panel") && document.getElementById("theia-left-right-split-panel")){
+                document.getElementById("theia-top-panel")!.remove();
+                document.getElementById("theia-left-right-split-panel")!.style.top = "0px";
+            }
+
+            // if(document.getElementById("theia-left-content-panel")){
+            //     document.getElementById("theia-left-content-panel")!.style.display = "none";
+            // }
+
+
             console.log("Swizzle editor extension ready")
         });
 
