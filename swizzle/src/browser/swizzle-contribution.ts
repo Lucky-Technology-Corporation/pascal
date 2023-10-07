@@ -53,9 +53,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         localStorage.clear()
 
-        // //Autosave preferences
+        const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY; // Adjust this to your specific directory
+        this.workspaceService.open(new URI(specificDirectoryUri))
+
         this.preferenceService.set('files.autoSave', 'onFocusChange');
-        // this.preferenceService.set('files.autoSaveDelay', 1000); // Set delay to 1 second
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
@@ -90,6 +91,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));
+    }
+
+    initializeLayout(app: FrontendApplication): MaybePromise<void> {
+        return Promise.resolve();
     }
 
     protected openTerminal(): void {
