@@ -1,5 +1,7 @@
 <script type="text/javascript">
     const urlParams = new URLSearchParams(window.location.search);
-    const jwt = urlParams.get('jwt');          
-    document.cookie = `jwt=${jwt}; path=/;`;    
+    const jwt = urlParams.get('jwt');      
+    if(jwt != null){   
+        document.cookie = `jwt=${jwt}; path=/;`;    
+    }
 </script>

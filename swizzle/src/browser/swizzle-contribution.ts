@@ -45,22 +45,41 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/swizzle/code/";
+    // private readonly MAIN_DIRECTORY = "/swizzle/code/";
+    private readonly MAIN_DIRECTORY = "/Users/adam";
 
     onStart(app: FrontendApplication): MaybePromise<void> {
-        //set the jwt
         console.log("Theia FrontendApplication onStart")
 
+        //Set JWT as cookie in case we missed it
+        const urlParams = new URLSearchParams(window.location.search);
+        const jwt = urlParams.get('jwt');      
+        if(jwt != null){   
+            document.cookie = `jwt=${jwt}; path=/;`;    
+        }
+
+        //Clear past layouts
         localStorage.clear()
 
-        const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY; // Adjust this to your specific directory
-        this.workspaceService.open(new URI(specificDirectoryUri))
+        //Open the code directory
+        const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY;
+        this.workspaceService.recentWorkspaces().then((workspaces) => {
+            console.log("last workspace: " + workspaces[0])
+            if(workspaces.length == 0){
+                this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
+            }
+            if(workspaces.length > 0 && workspaces[0] !== specificDirectoryUri){
+                this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
+            }
+        })
 
+        //Only save when changing files
         this.preferenceService.set('files.autoSave', 'onFocusChange');
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
 
+        //Open the terminal, set the styles, and notify the parent that the extension is ready
         this.stateService.reachedState('ready').then(() => {
             this.openTerminal();
             window.parent.postMessage({ type: 'extensionReady' }, '*');
@@ -74,25 +93,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             //     document.getElementById("theia-left-content-panel")!.style.display = "none";
             // }
 
-
             console.log("Swizzle editor extension ready")
         });
 
         //Set the file associations
         this.setFileAssociations();
 
-        //Close file explorer if open
-        //Not working? test again
-
-        // const fileExplorer = this.shell.getWidgets('left').find(w => w.id === 'navigator');
-        // if (fileExplorer && fileExplorer.isVisible) {
-        //   this.commandRegistry.executeCommand('files.toggle');
-        // }
-
         //Listen for file changes
         this.editorManager.onCurrentEditorChanged(this.handleEditorChanged.bind(this));
     }
 
+    //No op the initialize layout
     initializeLayout(app: FrontendApplication): MaybePromise<void> {
         return Promise.resolve();
     }
@@ -134,13 +145,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             }
         })
     }
-
-    // async closeOpenFiles(): Promise<void> {
-    //     console.log("Close open files")
-    //     for (const editorWidget of this.editorManager.all) {
-    //         editorWidget.close();
-    //     }
-    // }
 
     //Set the file associations
     async setFileAssociations(): Promise<void> {
@@ -298,8 +302,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
             }
         }
-
         return
+    }
+
+
+    async closeOpenFiles(): Promise<void> {
+        console.log("Close open files")
+        for (const editorWidget of this.editorManager.all) {
+            editorWidget.close();
+        }
     }
 
     protected async closeCurrentFile(): Promise<void> {
