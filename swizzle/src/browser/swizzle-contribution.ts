@@ -45,8 +45,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    // private readonly MAIN_DIRECTORY = "/swizzle/code/";
-    private readonly MAIN_DIRECTORY = "/Users/adam";
+    private readonly MAIN_DIRECTORY = "/swizzle/code/";
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         console.log("Theia FrontendApplication onStart")
