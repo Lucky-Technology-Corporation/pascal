@@ -61,16 +61,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         localStorage.clear()
 
         //Open the code directory
-        const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY;
-        this.workspaceService.recentWorkspaces().then((workspaces) => {
-            console.log("last workspace: " + workspaces[0])
-            if(workspaces.length == 0){
-                this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
-            }
-            if(workspaces.length > 0 && workspaces[0] !== specificDirectoryUri){
-                this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
-            }
-        })
+        // const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY;
+        // this.workspaceService.recentWorkspaces().then((workspaces) => {
+        //     console.log("last workspace: " + workspaces[0])
+        //     if(workspaces.length == 0){
+        //         this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
+        //     }
+        //     if(workspaces.length > 0 && workspaces[0] !== specificDirectoryUri){
+        //         this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
+        //     }
+        // })
 
         //Only save when changing files
         this.preferenceService.set('files.autoSave', 'onFocusChange');
