@@ -1,5 +1,6 @@
 <script type="text/javascript">
-    localStorage.clear()
+    // localStorage.clear()
+    localStorage.removeItem("theia:/:file:///swizzle/code:layout")
     const urlParams = new URLSearchParams(window.location.search);
     const jwt = urlParams.get('jwt');      
     if(jwt != null){   
