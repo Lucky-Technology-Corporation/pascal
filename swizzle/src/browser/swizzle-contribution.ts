@@ -58,7 +58,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
 
         //Clear past layouts
-        localStorage.clear()
+        // localStorage.clear()
 
         //Open the code directory
         // const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY;
