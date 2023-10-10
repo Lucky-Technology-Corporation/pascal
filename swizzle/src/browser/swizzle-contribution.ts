@@ -54,7 +54,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const urlParams = new URLSearchParams(window.location.search);
         const jwt = urlParams.get('jwt');      
         if(jwt != null){   
-            document.cookie = `jwt=${jwt}; path=/;`;    
+            document.cookie = `jwt=${jwt}; path=/; SameSite=None; Secure`;    
         }
 
         //Clear past layouts
