@@ -229,7 +229,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 fileName = relativeFilePath.substring(lastIndex + 1);
 
                 const method = endpointName.split("/")[0];
-                const endpoint = endpointName.split("/")[1];
+                const endpoint = endpointName.substring(endpointName.indexOf("/"));
 
                 const fileContent = starterEndpoint(method, endpoint);
 
