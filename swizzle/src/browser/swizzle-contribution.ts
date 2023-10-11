@@ -10,7 +10,7 @@ import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
 import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
-import { starterCSS, starterEndpoint, starterHTML } from './swizzle-starter-code';
+import { starterEndpoint } from './swizzle-starter-code';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -259,23 +259,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
                     await serverResource.saveContents(newContent, { encoding: 'utf8' });
                 }
-            } else if (relativeFilePath.includes("user-hosting/")) {
-
-                fileName = filePath.replace("user-hosting/", "");
-
+            } else if (relativeFilePath.includes("frontend/")) {
                 var fileContent = "";
-                if (fileName.includes(".html")) {
-                    fileContent = starterHTML();
-                } else if (fileName.includes(".css")) {
-                    fileContent = starterCSS()
-                }
+                fileName = filePath.replace("frontend/src/", "");
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
             } else if (relativeFilePath.includes("user-helpers/")) {
 
-                fileName = filePath.replace("/user-helpers/", "");
+                fileName = filePath.replace("backend/user-helpers/", "");
 
                 var fileContent = `global.${fileName} = function() {\n\n}`;
 

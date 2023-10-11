@@ -4,7 +4,7 @@ export function starterEndpoint(method: string, endpoint: string){
 const router = express.Router();
 const { optionalAuthentication } = require('swizzle-js');
 
-router.${method}('/${endpoint}', optionalAuthentication, async (request, response) => {
+router.${method}('${endpoint}', optionalAuthentication, async (request, response) => {
     //Your code goes here
     return response.json({ message: "It works!" });
 });
