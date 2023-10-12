@@ -268,7 +268,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
             } else if (relativeFilePath.includes("user-helpers/")) {
 
-                fileName = filePath.replace("backend/user-helpers/", "");
+                fileName = filePath.split("backend/user-helpers/")[1];
 
                 var fileContent = `global.${fileName} = function() {\n\n}`;
 
