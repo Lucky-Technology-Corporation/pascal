@@ -93,9 +93,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             if(document.getElementById("shell-tab-scm-view-container")){
                 document.getElementById("shell-tab-scm-view-container")!.remove();
             }
-            if(document.getElementById("theia-statusBar")){
-                document.getElementById("theia-statusBar")!.remove();
-            }
+            // if(document.getElementById("theia-statusBar")){
+            //     document.getElementById("theia-statusBar")!.remove();
+            // }
 
             console.log("Swizzle editor extension ready")
         });
