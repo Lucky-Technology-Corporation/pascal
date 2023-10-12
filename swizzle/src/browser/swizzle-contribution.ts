@@ -270,7 +270,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
                 fileName = filePath.split("backend/user-helpers/")[1];
 
-                var fileContent = `global.${fileName} = function() {\n\n}`;
+                var fileContent = `global.${fileName.replace(".js", "")} = function() {\n\n}`;
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
