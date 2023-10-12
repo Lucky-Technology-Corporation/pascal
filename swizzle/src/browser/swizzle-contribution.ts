@@ -117,11 +117,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             try {
                 await terminal.start();
                 this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\n");
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/backend\n");
                 terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
                 terminal.sendText("chmod +x /app/tail-logs.sh\n");
                 terminal.sendText("/app/tail-logs.sh app.log\n");
-                terminal.sendText("clear\n");
+                // terminal.sendText("clear\n");
 
                 //Disable user input. TODO: I don't think this is working, not even sure if this is a good idea?
                 const terminalElement = terminal.node.querySelector('.xterm-helper-textarea');
@@ -141,7 +141,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, title: "Packages" }).then(async terminal => {
             try {
                 await terminal.start();
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "\nclear\n");
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/backend\nclear\n");
                 this.terminalWidgetId = terminal.id;
                 console.log("Opened package terminal" + terminal.id)
             } catch (error) {
@@ -238,7 +238,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
 
                 //add the reference to server.js
-                const serverUri = new URI(this.MAIN_DIRECTORY + "server.js");
+                const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.js");
                 const serverResource = await this.resourceProvider(serverUri);
                 if (serverResource.saveContents) {
                     const content = await serverResource.readContents({ encoding: 'utf8' });
@@ -328,19 +328,21 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.createNewFile(event.data.fileName, event.data.endpointName);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
-        } else if (event.data.type === 'reloadServer') {
-            
+        } else if(event.data.type === 'closeFiles'){
+            this.closeOpenFiles();
         } else if (event.data.type === 'saveCookie') {
             const cookieValue = event.data.cookieValue;
             const cookieName = event.data.cookieName;
             document.cookie = cookieName+"="+cookieValue+"; path=/";
         } else if (event.data.type === 'addPackage') {
             const packageName = event.data.packageName;
+            const directory = event.data.directory;
             const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
             if (!terminalWidget) {
                 this.messageService.error(`Terminal not found`);
                 return;
             }
+            terminalWidget.sendText(`cd ${this.MAIN_DIRECTORY}/${directory}\n`);
             terminalWidget.sendText(`npm install ${packageName} --save\n`);
         } else if (event.data.type === 'removePackage') {
             const packageName = event.data.packageName;
