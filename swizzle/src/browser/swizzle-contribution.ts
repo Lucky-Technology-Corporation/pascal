@@ -346,11 +346,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             terminalWidget.sendText(`npm install ${packageName} --save\n`);
         } else if (event.data.type === 'removePackage') {
             const packageName = event.data.packageName;
+            const directory = event.data.directory;
             const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
             if (!terminalWidget) {
                 this.messageService.error(`Terminal not found`);
                 return;
             }
+            terminalWidget.sendText(`cd ${this.MAIN_DIRECTORY}/${directory}\n`);
             terminalWidget.sendText(`npm uninstall ${packageName}\n`);
         } else if (event.data.type === 'findAndReplace') {
             const textToFind = event.data.findText;
