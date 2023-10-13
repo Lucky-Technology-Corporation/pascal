@@ -222,6 +222,39 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
+    async removeFile(relativeFilePath: string, endpointName: string): Promise<void>{
+        //remove from server.js
+        const lastIndex = relativeFilePath.lastIndexOf("/");
+        var fileName = relativeFilePath.substring(lastIndex + 1);
+
+        const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.js");
+        const serverResource = await this.resourceProvider(serverUri);
+        if (serverResource.saveContents) {
+            const content = await serverResource.readContents({ encoding: 'utf8' });
+            
+            //Remove extension and replace dashes with underscores
+            var requireName = fileName.replace(".js", "").replace(/-/g, "_");
+            
+            //Remove the path
+            const lastIndex = requireName.lastIndexOf("/");
+            requireName = requireName.substring(lastIndex + 1);
+                       
+            const newContent = content
+                .replace(`\nconst ${requireName} = require("./user-dependencies/${fileName}");`, ``)
+                .replace(`\napp.use('', ${requireName});`, ``);
+            await serverResource.saveContents(newContent, { encoding: 'utf8' });
+        }
+
+        for (const editorWidget of this.editorManager.all) {
+            const editorUri = editorWidget.getResourceUri();
+            console.log(editorUri)
+            const filePath = "file://" + this.MAIN_DIRECTORY + relativeFilePath;
+            if (editorUri && editorUri.path.toString() === filePath) {
+                editorWidget.close();
+            }
+        }
+    }
+
     //accepts something like get-path-to-api.js or post-.js
     async createNewFile(relativeFilePath: string, endpointName: string): Promise<void> {
         try {
@@ -336,6 +369,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.saveCurrentFile();
         } else if(event.data.type === 'closeFiles'){
             this.closeOpenFiles();
+        } else if(event.data.type === 'removeFile'){
+            this.removeFile(event.data.fileName, event.data.endpointName) 
         } else if (event.data.type === 'saveCookie') {
             const cookieValue = event.data.cookieValue;
             const cookieName = event.data.cookieName;
