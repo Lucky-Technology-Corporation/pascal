@@ -84,23 +84,23 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             window.parent.postMessage({ type: 'extensionReady' }, '*');
 
             if(document.getElementById("theia-top-panel") && document.getElementById("theia-left-right-split-panel")){
-                document.getElementById("theia-top-panel")!.remove();
+                document.getElementById("theia-top-panel")!.style.display = 'none'
                 document.getElementById("theia-left-right-split-panel")!.style.top = "0px";
             }
             if(document.getElementById("shell-tab-explorer-view-container")){
-                document.getElementById("shell-tab-explorer-view-container")!.remove();
+                document.getElementById("shell-tab-explorer-view-container")!.style.display = 'none'
             }
             if(document.getElementById("shell-tab-scm-view-container")){
-                document.getElementById("shell-tab-scm-view-container")!.remove();
+                document.getElementById("shell-tab-scm-view-container")!.style.display = 'none'
             }
             if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
-                document.getElementsByClassName("theia-tabBar-multirow")[0]!.remove();
+                (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.display = 'none'
             }
-            if(document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget")[0] as HTMLElement){
-                (document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget")[0] as HTMLElement).style.top = "2px";
-            }
+            document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
+                (elem as HTMLElement).style.top = "10px";
+            })
             if(document.getElementById("theia-statusBar")){
-                document.getElementById("theia-statusBar")!.remove();
+                document.getElementById("theia-statusBar")!.style.display = 'none'
             }
 
             console.log("Swizzle editor extension ready")
