@@ -94,10 +94,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 document.getElementById("shell-tab-scm-view-container")!.style.display = 'none'
             }
             if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
-                (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.display = 'none'
+                (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.cssText = 'display: none !important;'
             }
             document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
-                (elem as HTMLElement).style.top = "10px";
+                (elem as HTMLElement).style.top = "0px";
             })
             if(document.getElementById("theia-statusBar")){
                 document.getElementById("theia-statusBar")!.style.display = 'none'
