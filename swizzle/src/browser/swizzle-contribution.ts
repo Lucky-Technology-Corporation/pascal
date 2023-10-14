@@ -249,8 +249,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         for (const editorWidget of this.editorManager.all) {
             const editorUri = editorWidget.getResourceUri();
             console.log(editorUri)
+            console.log(editorUri?.toString())
+            console.log(editorUri?.path.toString())
             const filePath = "file://" + this.MAIN_DIRECTORY + relativeFilePath;
-            if (editorUri && editorUri.path.toString() === filePath) {
+            if (editorUri?.toString() === filePath) {
                 editorWidget.close();
             }
         }
