@@ -45,7 +45,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/swizzle/code/";
+    private readonly MAIN_DIRECTORY = "/swizzle/code";
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         console.log("Theia FrontendApplication onStart")
@@ -224,6 +224,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     async removeFile(relativeFilePath: string, endpointName: string): Promise<void>{
         //remove from server.js
+        console.log("removing file " + relativeFilePath)
         const lastIndex = relativeFilePath.lastIndexOf("/");
         var fileName = relativeFilePath.substring(lastIndex + 1);
 
