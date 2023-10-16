@@ -308,11 +308,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
-            } else if (relativeFilePath.includes("user-helpers/")) {
+            } else if (relativeFilePath.includes("helpers/")) {
 
-                fileName = filePath.split("backend/user-helpers/")[1];
+                fileName = filePath.split("backend/helpers/")[1];
 
-                var fileContent = `global.${fileName.replace(".js", "")} = function() {\n\n}`;
+                var fileContent = ``;
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
