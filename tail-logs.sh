@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-tail -f "$1" | while read -r line; do
+tail -F -n0 "$1" | while read -r line; do
     if echo "$line" | jq -e . > /dev/null 2>&1; then
         ts=$(echo "$line" | jq -r '.timestamp')
         ts=$((ts/1000))
