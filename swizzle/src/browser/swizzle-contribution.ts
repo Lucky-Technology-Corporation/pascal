@@ -45,6 +45,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
 
+    private frontendTerminalId: string = "";
+    private backendTerminalId: string = "";
+
     private readonly MAIN_DIRECTORY = "/swizzle/code";
 
     onStart(app: FrontendApplication): MaybePromise<void> {
@@ -119,7 +122,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     protected openTerminal(): void {
-        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Logs" }).then(async terminal => {
+        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Backend Logs" }).then(async terminal => {
             try {
                 await terminal.start();
                 this.terminalService.open(terminal);
@@ -127,15 +130,27 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
                 terminal.sendText("chmod +x /app/tail-logs.sh\n");
                 terminal.sendText("/app/tail-logs.sh app.log\n");
-                // terminal.sendText("clear\n");
+                this.backendTerminalId = terminal.id;
 
-                //Disable user input. TODO: I don't think this is working, not even sure if this is a good idea?
-                const terminalElement = terminal.node.querySelector('.xterm-helper-textarea');
-                if (terminalElement) {
-                    terminalElement.setAttribute('readonly', 'true');
-                }
+                console.log("Opened backend logs terminal" + terminal.id)
+            } catch (error) {
+                console.log(error)
+            }
+        }).catch(error => {
+            this.messageService.error(`Failed to open the terminal: ${error}`);
+            console.log(error);
+        });
 
-                console.log("Opened log terminal" + terminal.id)
+        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Frontend Logs" }).then(async terminal => {
+            try {
+                await terminal.start();
+                this.terminalService.open(terminal);
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/frontend\n");
+                terminal.sendText(`pkill -f "tail"\n`);
+                terminal.sendText("tail -f app.log\n");
+                this.frontendTerminalId = terminal.id;
+
+                console.log("Opened frontend logs terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
             }
@@ -203,6 +218,19 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     hasStorage: hasStorage
                 }, '*');
             }
+        }
+    }
+
+    async openRelevantTerminal(fileName: string): Promise<void>{
+        var terminalId = ""
+        if(fileName.includes("backend/")){
+            terminalId = this.backendTerminalId
+        } else if(fileName.includes("frontend/")){
+            terminalId = this.frontendTerminalId
+        }
+        const terminal = this.terminalService.all.find(t => t.id === terminalId);
+        if (terminal) {
+          this.terminalService.open(terminal);
         }
     }
 
@@ -365,6 +393,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         if (event.data.type === 'openFile') {
             // this.saveCurrentFile();
             this.openExistingFile(event.data.fileName)
+            this.openRelevantTerminal(event.data.fileName)
         } else if (event.data.type === 'newFile') {
             // this.saveCurrentFile();
             this.createNewFile(event.data.fileName, event.data.endpointName);
