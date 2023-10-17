@@ -26,7 +26,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     @inject(TerminalService)
     protected readonly terminalService!: TerminalService;
-
+    
     @inject(PreferenceService)
     protected readonly preferenceService: PreferenceService;
 
@@ -59,21 +59,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         if(jwt != null){   
             document.cookie = `jwt=${jwt}; path=/; SameSite=None; Secure`;    
         }
-
-        //Clear past layouts
-        // localStorage.clear()
-
-        //Open the code directory
-        // const specificDirectoryUri = 'file://'+this.MAIN_DIRECTORY;
-        // this.workspaceService.recentWorkspaces().then((workspaces) => {
-        //     console.log("last workspace: " + workspaces[0])
-        //     if(workspaces.length == 0){
-        //         this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
-        //     }
-        //     if(workspaces.length > 0 && workspaces[0] !== specificDirectoryUri){
-        //         this.workspaceService.open(new URI(specificDirectoryUri), { preserveWindow: true })
-        //     }
-        // })
 
         //Only save when changing files
         this.preferenceService.set('files.autoSave', 'onFocusChange');
@@ -390,6 +375,20 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         await this.commandRegistry.executeCommand('search-in-workspace.open');
     }
 
+    async openDebugger(): Promise<void> {
+        this.shell.revealWidget("debug")
+        await this.commandRegistry.executeCommand('debug.configurations.open');
+        await this.commandRegistry.executeCommand('workbench.action.debug.start');
+    }
+    async closeDebugger(): Promise<void> {
+        this.shell.collapsePanel("left")
+        await this.commandRegistry.executeCommand('workbench.action.debug.stop');
+    }
+
+    async runCommand(command: any): Promise<void> {
+        await this.commandRegistry.executeCommand(command);
+    }
+
     async closeOpenFiles(): Promise<void> {
         console.log("Close open files")
         for (const editorWidget of this.editorManager.all) {
@@ -424,7 +423,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.closeSearchView() 
         } else if(event.data.type === 'openSearchView'){
             this.openSearchView() 
-        }  else if (event.data.type === 'saveCookie') {
+        } else if(event.data.type === 'openDebugger'){
+            this.openDebugger() 
+        } else if(event.data.type === 'closeDebugger'){
+            this.closeDebugger() 
+        } else if(event.data.type === 'runCommand'){
+            this.runCommand(event.data.command)
+        } else if (event.data.type === 'saveCookie') {
             const cookieValue = event.data.cookieValue;
             const cookieName = event.data.cookieName;
             document.cookie = cookieName+"="+cookieValue+"; path=/";
