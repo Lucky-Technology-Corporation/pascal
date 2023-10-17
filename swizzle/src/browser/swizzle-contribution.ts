@@ -260,8 +260,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     async removeFile(relativeFilePath: string, endpointName: string): Promise<void>{
-
+        console.log("removeFile")
         if(endpointName != undefined && endpointName !== ""){ //remove from server.js if it's an endpoint
+            console.log("remove endpoint")
             const lastIndex = relativeFilePath.lastIndexOf("/");
             var fileName = relativeFilePath.substring(lastIndex + 1);
 
@@ -282,9 +283,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     .replace(`\nconst ${requireName} = require("./user-dependencies/${fileName}");`, ``)
                     .replace(`\napp.use('', ${requireName});`, ``);
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
+                console.log("updated server.js")
             }
         }
-
+        console.log("removing " + relativeFilePath)
         for (const editorWidget of this.editorManager.all) {
             const editorUri = editorWidget.getResourceUri();
             const filePath = "file://" + this.MAIN_DIRECTORY + relativeFilePath;
