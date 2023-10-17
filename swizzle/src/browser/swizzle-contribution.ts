@@ -83,16 +83,19 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             }
 
             //Hide top tabs
-            if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
-                (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.cssText = 'display: none !important;'
-            }
+            // if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
+            //     (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.cssText = 'display: none !important;'
+            // }
 
             //Increase editor height to take up available space
-            document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
-                (elem as HTMLElement).style.top = "0px";
-            })
+            // document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
+            //     (elem as HTMLElement).style.top = "0px";
+            // })
+            
             const style = document.createElement('style');
-            style.innerHTML = `.theia-editor { top: 0px !important; }`;
+            style.innerHTML = `div.p-Widget.p-Menu {
+                display: none !important;
+            }`;
             document.head.appendChild(style);
 
 
