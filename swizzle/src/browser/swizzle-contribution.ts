@@ -6,6 +6,7 @@ import { ResourceProvider } from '@theia/core/lib/common';
 import { CommandRegistry } from '@theia/core/lib/common/command';
 import { URI } from '@theia/core/lib/common/uri';
 import { inject, injectable } from '@theia/core/shared/inversify';
+import { DebugConsoleContribution } from '@theia/debug/lib/browser/console/debug-console-contribution';
 import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
 import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
@@ -41,6 +42,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
+
+    @inject(DebugConsoleContribution)
+    protected readonly debugConsole: DebugConsoleContribution;
 
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
@@ -386,12 +390,20 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     async openDebugger(): Promise<void> {
         this.shell.revealWidget("debug")
-        await this.commandRegistry.executeCommand('debug.configurations.open');
         await this.commandRegistry.executeCommand('workbench.action.debug.start');
+        this.debugConsole.openView({
+            reveal: true,
+            activate: true
+        });
     }
     async closeDebugger(): Promise<void> {
         this.shell.collapsePanel("left")
         await this.commandRegistry.executeCommand('workbench.action.debug.stop');
+        this.shell.widgets.forEach(widget => {
+            if (widget.id === 'debug-console') {
+                widget.close();
+            }
+        });
     }
 
     async runCommand(command: any): Promise<void> {
