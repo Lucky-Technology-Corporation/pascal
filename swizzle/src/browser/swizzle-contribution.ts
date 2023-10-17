@@ -96,9 +96,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             if(document.getElementById("shell-tab-scm-view-container")){
                 document.getElementById("shell-tab-scm-view-container")!.style.display = 'none'
             }
-            if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
-                (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.cssText = 'display: none !important;'
-            }
+            
             document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
                 (elem as HTMLElement).style.top = "0px";
             })
@@ -343,7 +341,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 var fileContent = `export default ${fileName.replace(".js", "")}(){
 
 }`;
-
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
