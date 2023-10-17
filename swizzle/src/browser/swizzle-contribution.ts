@@ -131,6 +131,24 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     protected openTerminal(): void {
+        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Frontend Logs" }).then(async terminal => {
+            try {
+                await terminal.start();
+                this.terminalService.open(terminal);
+                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/frontend\n");
+                terminal.sendText(`pkill -f "tail"\n`);
+                terminal.sendText("tail -f app.log\n");
+                this.frontendTerminalId = terminal.id;
+
+                console.log("Opened frontend logs terminal" + terminal.id)
+            } catch (error) {
+                console.log(error)
+            }
+        }).catch(error => {
+            this.messageService.error(`Failed to open the terminal: ${error}`);
+            console.log(error);
+        });
+
         this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Backend Logs" }).then(async terminal => {
             try {
                 await terminal.start();
@@ -142,24 +160,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 this.backendTerminalId = terminal.id;
 
                 console.log("Opened backend logs terminal" + terminal.id)
-            } catch (error) {
-                console.log(error)
-            }
-        }).catch(error => {
-            this.messageService.error(`Failed to open the terminal: ${error}`);
-            console.log(error);
-        });
-
-        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Frontend Logs" }).then(async terminal => {
-            try {
-                await terminal.start();
-                this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/frontend\n");
-                terminal.sendText(`pkill -f "tail"\n`);
-                terminal.sendText("tail -f app.log\n");
-                this.frontendTerminalId = terminal.id;
-
-                console.log("Opened frontend logs terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
             }
@@ -381,6 +381,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         return
     }
 
+    async closeSearchView(): Promise<void> {
+        this.shell.collapsePanel("left")
+    }
+    async openSearchView(): Promise<void> {
+        await this.commandRegistry.executeCommand('search-in-workspace.open');
+    }
 
     async closeOpenFiles(): Promise<void> {
         console.log("Close open files")
@@ -412,7 +418,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.closeOpenFiles();
         } else if(event.data.type === 'removeFile'){
             this.removeFile(event.data.fileName, event.data.endpointName) 
-        } else if (event.data.type === 'saveCookie') {
+        } else if(event.data.type === 'closeSearchView'){
+            this.closeSearchView() 
+        } else if(event.data.type === 'openSearchView'){
+            this.openSearchView() 
+        }  else if (event.data.type === 'saveCookie') {
             const cookieValue = event.data.cookieValue;
             const cookieName = event.data.cookieName;
             document.cookie = cookieName+"="+cookieValue+"; path=/";
