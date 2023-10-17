@@ -96,10 +96,21 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             if(document.getElementById("shell-tab-scm-view-container")){
                 document.getElementById("shell-tab-scm-view-container")!.style.display = 'none'
             }
-            
+
+            //Hide top tabs
+            if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
+                (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.cssText = 'display: none !important;'
+            }
+
+            //Increase editor height to take up available space
             document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
                 (elem as HTMLElement).style.top = "0px";
             })
+            const style = document.createElement('style');
+            style.innerHTML = `.theia-editor { top: 0px !important; }`;
+            document.head.appendChild(style);
+
+
             if(document.getElementById("theia-statusBar")){
                 document.getElementById("theia-statusBar")!.style.display = 'none'
             }
@@ -249,34 +260,33 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     async removeFile(relativeFilePath: string, endpointName: string): Promise<void>{
-        //remove from server.js
-        console.log("removing file " + relativeFilePath)
-        const lastIndex = relativeFilePath.lastIndexOf("/");
-        var fileName = relativeFilePath.substring(lastIndex + 1);
 
-        const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.js");
-        const serverResource = await this.resourceProvider(serverUri);
-        if (serverResource.saveContents) {
-            const content = await serverResource.readContents({ encoding: 'utf8' });
-            
-            //Remove extension and replace dashes with underscores
-            var requireName = fileName.replace(".js", "").replace(/-/g, "_");
-            
-            //Remove the path
-            const lastIndex = requireName.lastIndexOf("/");
-            requireName = requireName.substring(lastIndex + 1);
-                       
-            const newContent = content
-                .replace(`\nconst ${requireName} = require("./user-dependencies/${fileName}");`, ``)
-                .replace(`\napp.use('', ${requireName});`, ``);
-            await serverResource.saveContents(newContent, { encoding: 'utf8' });
+        if(endpointName != undefined && endpointName !== ""){ //remove from server.js if it's an endpoint
+            const lastIndex = relativeFilePath.lastIndexOf("/");
+            var fileName = relativeFilePath.substring(lastIndex + 1);
+
+            const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.js");
+            const serverResource = await this.resourceProvider(serverUri);
+
+            if (serverResource.saveContents) {
+                const content = await serverResource.readContents({ encoding: 'utf8' });
+                
+                //Remove extension and replace dashes with underscores
+                var requireName = fileName.replace(".js", "").replace(/-/g, "_");
+                
+                //Remove the path
+                const lastIndex = requireName.lastIndexOf("/");
+                requireName = requireName.substring(lastIndex + 1);
+                        
+                const newContent = content
+                    .replace(`\nconst ${requireName} = require("./user-dependencies/${fileName}");`, ``)
+                    .replace(`\napp.use('', ${requireName});`, ``);
+                await serverResource.saveContents(newContent, { encoding: 'utf8' });
+            }
         }
 
         for (const editorWidget of this.editorManager.all) {
             const editorUri = editorWidget.getResourceUri();
-            console.log(editorUri)
-            console.log(editorUri?.toString())
-            console.log(editorUri?.path.toString())
             const filePath = "file://" + this.MAIN_DIRECTORY + relativeFilePath;
             if (editorUri?.toString() === filePath) {
                 editorWidget.close();
