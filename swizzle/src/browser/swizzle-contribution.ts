@@ -91,7 +91,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             // document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
             //     (elem as HTMLElement).style.top = "0px";
             // })
-            
+
             const style = document.createElement('style');
             style.innerHTML = `div.p-Widget.p-Menu {
                 display: none !important;
@@ -102,6 +102,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             if(document.getElementById("theia-statusBar")){
                 document.getElementById("theia-statusBar")!.style.display = 'none'
             }
+
+            this.shell.widgets.forEach(widget => {
+                if (widget.id === 'problems') { // replace with the actual ID if different
+                    widget.close();
+                }
+            });    
 
             console.log("Swizzle editor extension ready")
         });
