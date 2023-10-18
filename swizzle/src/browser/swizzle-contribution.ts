@@ -97,9 +97,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             // })
 
             const style = document.createElement('style');
-            style.innerHTML = `div.p-Widget.p-Menu {
+            style.innerHTML = `
+            li.p-Menu-item[data-command="navigator.reveal"] {
                 display: none !important;
-            }`;
+            }
+            li.p-Menu-item[data-command="core.toggleMaximized"] {
+                display: none !important;
+            }
+            li.p-Menu-item[data-command="typescript.findAllFileReferences"] {
+                display: none !important;
+            }
+            `;
             document.head.appendChild(style);
 
 
