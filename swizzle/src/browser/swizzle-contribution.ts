@@ -142,7 +142,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 await terminal.start();
                 this.terminalService.open(terminal);
                 terminal.sendText("cd " + this.MAIN_DIRECTORY + "/frontend\n");
-                terminal.sendText(`pkill -f "tail"\n`);
+                terminal.sendText(`pkill -f "tail app.log"\n`);
                 terminal.sendText("tail -f app.log\n");
                 this.frontendTerminalId = terminal.id;
 
