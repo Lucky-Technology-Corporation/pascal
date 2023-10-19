@@ -144,6 +144,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 this.terminalService.open(terminal);
                 terminal.sendText("tail -f app.log\n");
                 this.frontendTerminalId = terminal.id;
+                terminal.clearOutput()
                 console.log("Opened frontend logs terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
@@ -160,6 +161,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 terminal.sendText("chmod +x /app/tail-logs.sh\n");
                 terminal.sendText("/app/tail-logs.sh app.log\n");
                 this.backendTerminalId = terminal.id;
+                terminal.clearOutput()
                 console.log("Opened backend logs terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
@@ -282,6 +284,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         for (const editorWidget of this.editorManager.all) {
             const editorUri = editorWidget.getResourceUri();
             const filePath = "file://" + this.MAIN_DIRECTORY + relativeFilePath;
+            console.log(editorUri?.toString() + " =?= " + filePath)
             if (editorUri?.toString() === filePath) {
                 editorWidget.close();
             }
@@ -335,8 +338,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
             }
-
-            this.openExistingFile(fileName)
 
         } catch (error) {
             console.log(error)
