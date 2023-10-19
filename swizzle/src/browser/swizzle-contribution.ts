@@ -11,7 +11,7 @@ import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
 import { MonacoEditor } from '@theia/monaco/lib/browser/monaco-editor';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
-import { starterEndpoint } from './swizzle-starter-code';
+import { starterComponent, starterEndpoint, starterHelper } from './swizzle-starter-code';
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -277,17 +277,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
             if (serverResource.saveContents) {
                 const content = await serverResource.readContents({ encoding: 'utf8' });
-                
-                //Remove extension and replace dashes with underscores
-                var requireName = fileName.replace(".js", "").replace(/-/g, "_");
-                
-                //Remove the path
-                const lastIndex = requireName.lastIndexOf("/");
-                requireName = requireName.substring(lastIndex + 1);
                         
                 const newContent = content
-                    .replace(`\nconst ${requireName} = require("./user-dependencies/${fileName}");`, ``)
-                    .replace(`\napp.use('', ${requireName});`, ``);
+                    .replace(`\napp.use('', require("./user-dependencies/${fileName}"));`, ``);
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
                 console.log("updated server.js")
             }
@@ -329,36 +321,22 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if (serverResource.saveContents) {
                     const content = await serverResource.readContents({ encoding: 'utf8' });
                     
-                    //Remove extension and replace dashes with underscores
-                    var requireName = fileName.replace(".js", "").replace(/-/g, "_");
-                    
-                    //Remove the path
-                    const lastIndex = requireName.lastIndexOf("/");
-                    requireName = requireName.substring(lastIndex + 1);
-                    
-                    //TODO: check this
-                    //Remove leading underscore
-                    // if(requireName.startsWith("_")){ requireName = requireName.substring(1); }
-                    
                     const newContent = content
-                        .replace("//_SWIZZLE_NEWREQUIREENTRYPOINT", `//_SWIZZLE_NEWREQUIREENTRYPOINT\nconst ${requireName} = require("./user-dependencies/${fileName}");`)
-                        .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', ${requireName});`);
+                        .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', require("./user-dependencies/${fileName}"));`);
                     await serverResource.saveContents(newContent, { encoding: 'utf8' });
                 }
+                
             } else if (relativeFilePath.includes("frontend/")) {
-                var fileContent = "";
                 fileName = filePath.replace("frontend/src/", "");
+                var fileContent = starterComponent(fileName.replace(".js", ""));
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
             } else if (relativeFilePath.includes("helpers/")) {
-
                 fileName = filePath.split("backend/helpers/")[1];
-
-                var fileContent = `export default ${fileName.replace(".js", "")}(){
-
-}`;
+                var fileContent = starterHelper(fileName.replace(".js", ""))
+                
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }

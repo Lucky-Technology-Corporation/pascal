@@ -34,3 +34,25 @@ export function starterCSS(){
     const fileContent = `/* Your CSS here */`
     return fileContent;
 }
+
+export function starterComponent(fileName: string){
+    return `import React from 'react';
+
+const ${fileName} = () => {
+    return (
+    <div>
+
+        <!-- Your content here -->
+
+    </div>
+    );
+};
+
+export default ${fileName};`
+}
+
+export function starterHelper(fileName: string){
+    return `export default ${fileName}(){
+
+}`
+}
