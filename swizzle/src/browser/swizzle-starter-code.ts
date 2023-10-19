@@ -52,7 +52,7 @@ export default ${fileName};`
 }
 
 export function starterHelper(fileName: string){
-    return `export default ${fileName}(){
+    return `export default function ${fileName}(){
 
 }`
 }
