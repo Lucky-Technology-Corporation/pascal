@@ -52,7 +52,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private frontendTerminalId: string = "";
     private backendTerminalId: string = "";
 
-    private readonly MAIN_DIRECTORY = "/swizzle/code";
+    // private readonly MAIN_DIRECTORY = "/swizzle/code";
+    private readonly MAIN_DIRECTORY = "/Users/adam/Documents/GitHub/SwizzleBackendTemplate"
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         console.log("Theia FrontendApplication onStart")
@@ -137,15 +138,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     protected openTerminal(): void {
-        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Frontend Logs" }).then(async terminal => {
+        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/frontend", title: "Frontend Logs" }).then(async terminal => {
             try {
                 await terminal.start();
                 this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/frontend\n");
-                terminal.sendText(`pkill -f "tail app.log"\n`);
                 terminal.sendText("tail -f app.log\n");
                 this.frontendTerminalId = terminal.id;
-
                 console.log("Opened frontend logs terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
@@ -155,16 +153,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             console.log(error);
         });
 
-        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, title: "Backend Logs" }).then(async terminal => {
+        this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/backend", title: "Backend Logs" }).then(async terminal => {
             try {
                 await terminal.start();
                 this.terminalService.open(terminal);
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/backend\n");
-                terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
                 terminal.sendText("chmod +x /app/tail-logs.sh\n");
                 terminal.sendText("/app/tail-logs.sh app.log\n");
                 this.backendTerminalId = terminal.id;
-
                 console.log("Opened backend logs terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
@@ -174,10 +169,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             console.log(error);
         });
 
-        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, title: "Packages" }).then(async terminal => {
+        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/backend", title: "Packages" }).then(async terminal => {
             try {
                 await terminal.start();
-                terminal.sendText("cd " + this.MAIN_DIRECTORY + "/backend\nclear\n");
                 this.terminalWidgetId = terminal.id;
                 console.log("Opened package terminal" + terminal.id)
             } catch (error) {
