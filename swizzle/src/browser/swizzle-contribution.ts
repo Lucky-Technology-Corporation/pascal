@@ -52,8 +52,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private frontendTerminalId: string = "";
     private backendTerminalId: string = "";
 
-    // private readonly MAIN_DIRECTORY = "/swizzle/code";
-    private readonly MAIN_DIRECTORY = "/Users/adam/Documents/GitHub/SwizzleBackendTemplate"
+    private readonly MAIN_DIRECTORY = "/swizzle/code";
+    // private readonly MAIN_DIRECTORY = "/Users/adam/Documents/GitHub/SwizzleBackendTemplate"
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         console.log("Theia FrontendApplication onStart")
