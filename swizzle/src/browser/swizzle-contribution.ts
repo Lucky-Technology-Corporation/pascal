@@ -319,8 +319,14 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const regex = /\/\/SWIZZLE_ENDPOINTS_START([\s\S]*)\/\/SWIZZLE_ENDPOINTS_END/g;
                     const result = regex.exec(content);
 
+                    // If we can't find the endpoints block, then just return
+                    if (!result || result.length < 2) {
+                        console.log("Could not find endpoints block in server.js");
+                        return;
+                    }
+
                     // Turn the endpoints into individual lines removing all indendation so the sort is consistent
-                    const lines = result[1]
+                    const lines = result![1]
                         .split("\n")
                         .filter((line) => line.trim().length > 0)
                         .map(line => line.trim())
