@@ -114,8 +114,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             TabBarRenderer.prototype.renderLabel = function(data) {
                 const label = data.title.label;
                 if(label.startsWith("get.") || label.startsWith("post.") || label.startsWith("put.") || label.startsWith("delete.") || label.startsWith("patch.")){
-                    const parts = label.split(".");
-                    data.title.label = parts[0].toUpperCase() + " /" + parts[1].replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                    const firstDotIndex = label.indexOf('.');
+                    const firstPart = label.slice(0, firstDotIndex);
+                    const secondPart = label.slice(firstDotIndex + 1);
+                    data.title.label = firstPart.toUpperCase() + " /" + secondPart.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
                 }
 
                 const node = originalRenderLabel.call(this, data);
