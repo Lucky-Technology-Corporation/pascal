@@ -87,16 +87,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 document.getElementById("shell-tab-scm-view-container")!.style.display = 'none'
             }
 
-            //Hide top tabs
-            // if(document.getElementsByClassName("theia-tabBar-multirow")[0]){
-            //     (document.getElementsByClassName("theia-tabBar-multirow")[0]! as HTMLElement).style.cssText = 'display: none !important;'
-            // }
-
-            //Increase editor height to take up available space
-            // document.querySelectorAll(".p-Widget.theia-editor.p-DockPanel-widget").forEach(elem => {
-            //     (elem as HTMLElement).style.top = "0px";
-            // })
-
             const style = document.createElement('style');
             style.innerHTML = `
             li.p-Menu-item[data-command="navigator.reveal"] {
@@ -110,7 +100,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             }
             `;
             document.head.appendChild(style);
-
 
             if(document.getElementById("theia-statusBar")){
                 document.getElementById("theia-statusBar")!.style.display = 'none'
@@ -327,7 +316,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const content = await serverResource.readContents({ encoding: 'utf8' });
                     
                     const newContent = content
-                        .replace("//_SWIZZLE_NEWENDPOINTENTRYPOINT", `//_SWIZZLE_NEWENDPOINTENTRYPOINT\napp.use('', require("./user-dependencies/${fileName}"));`);
+                        .replace("//SWIZZLE_ENDPOINTS_START", `//SWIZZLE_ENDPOINTS_START\napp.use('', require("./user-dependencies/${fileName}"));`);
                     await serverResource.saveContents(newContent, { encoding: 'utf8' });
                 }
                 
