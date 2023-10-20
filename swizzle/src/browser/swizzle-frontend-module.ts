@@ -1,16 +1,16 @@
 /**
  * Generated using theia-extension-generator
  */
-import { ContainerModule } from '@theia/core/shared/inversify';
-import { SwizzleContribution } from './swizzle-contribution';
 import { FrontendApplicationContribution } from '@theia/core/lib/browser';
-import { PluginVSCodeContribution } from '@theia/plugin-ext-vscode/lib/browser/plugin-vscode-contribution';
-import { DebugService } from '@theia/debug/lib/common/debug-service';
-import { SwizzleEditorNavigationContribution } from './swizzle-editor-navigation-contribution';
-import { EditorNavigationContribution } from '@theia/editor/lib/browser/editor-navigation-contribution';
 import { MessageService } from '@theia/core/lib/common/message-service';
-import { NoOpMessageService } from './message-service';
+import { ContainerModule } from '@theia/core/shared/inversify';
+import { DebugService } from '@theia/debug/lib/common/debug-service';
+import { EditorNavigationContribution } from '@theia/editor/lib/browser/editor-navigation-contribution';
+import { PluginVSCodeContribution } from '@theia/plugin-ext-vscode/lib/browser/plugin-vscode-contribution';
 import { WorkspaceTrustService } from '@theia/workspace/lib/browser/workspace-trust-service';
+import { NoOpMessageService } from './message-service';
+import { SwizzleContribution } from './swizzle-contribution';
+import { SwizzleEditorNavigationContribution } from './swizzle-editor-navigation-contribution';
 import { NoOpTrustService } from './trust-service';
 
 export default new ContainerModule((bind, unbind) => {
@@ -27,7 +27,7 @@ export default new ContainerModule((bind, unbind) => {
 
     unbind(WorkspaceTrustService);
     bind(WorkspaceTrustService).to(NoOpTrustService).inSingletonScope();
-
+    
     bind(FrontendApplicationContribution).toDynamicValue(ctx => ({
         onStart(): void {
             const style = document.createElement('style');

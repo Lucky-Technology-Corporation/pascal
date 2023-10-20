@@ -1,5 +1,5 @@
 import { MaybePromise, MessageService } from '@theia/core';
-import { ApplicationShell, FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
+import { ApplicationShell, FrontendApplication, FrontendApplicationContribution, TabBarRenderer } from '@theia/core/lib/browser';
 import { FrontendApplicationStateService } from '@theia/core/lib/browser/frontend-application-state';
 import { PreferenceScope, PreferenceService } from '@theia/core/lib/browser/preferences';
 import { ResourceProvider } from '@theia/core/lib/common';
@@ -53,7 +53,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private backendTerminalId: string = "";
 
     private readonly MAIN_DIRECTORY = "/swizzle/code";
-    // private readonly MAIN_DIRECTORY = "/Users/adam/Documents/GitHub/SwizzleBackendTemplate"
 
     onStart(app: FrontendApplication): MaybePromise<void> {
         console.log("Theia FrontendApplication onStart")
@@ -110,6 +109,18 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     widget.close();
                 }
             });    
+
+            const originalRenderLabel = TabBarRenderer.prototype.renderLabel;
+            TabBarRenderer.prototype.renderLabel = function(data) {
+                const label = data.title.label;
+                if(label.startsWith("get.") || label.startsWith("post.") || label.startsWith("put.") || label.startsWith("delete.") || label.startsWith("patch.")){
+                    const parts = label.split(".");
+                    data.title.label = parts[0].toUpperCase() + " /" + parts[1].replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                }
+
+                const node = originalRenderLabel.call(this, data);
+                return node;
+            };
 
             console.log("Swizzle editor extension ready")
         });
