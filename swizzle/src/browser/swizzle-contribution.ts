@@ -137,11 +137,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         return Promise.resolve();
     }
 
+    delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }    
+
     protected openTerminal(): void {
         this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/frontend", title: "Frontend Logs" }).then(async terminal => {
             try {
                 await terminal.start();
                 this.terminalService.open(terminal);
+                terminal.sendText(`pkill -f "tail app.log"\n`);
+                await this.delay(100)
                 terminal.sendText("tail -f app.log\n");
                 this.frontendTerminalId = terminal.id;
                 terminal.clearOutput()
@@ -158,6 +164,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             try {
                 await terminal.start();
                 this.terminalService.open(terminal);
+                terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
+                await this.delay(100)
                 terminal.sendText("chmod +x /app/tail-logs.sh\n");
                 terminal.sendText("/app/tail-logs.sh app.log\n");
                 this.backendTerminalId = terminal.id;
