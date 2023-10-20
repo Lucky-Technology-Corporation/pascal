@@ -314,9 +314,49 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const serverResource = await this.resourceProvider(serverUri);
                 if (serverResource.saveContents) {
                     const content = await serverResource.readContents({ encoding: 'utf8' });
-                    
-                    const newContent = content
-                        .replace("//SWIZZLE_ENDPOINTS_START", `//SWIZZLE_ENDPOINTS_START\napp.use('', require("./user-dependencies/${fileName}"));`);
+
+                    // Search for block of endpoints in server.js and using the capture group to get all the endpoints.
+                    const regex = /\/\/SWIZZLE_ENDPOINTS_START([\s\S]*)\/\/SWIZZLE_ENDPOINTS_END/g;
+                    const result = regex.exec(content);
+
+                    // Turn the endpoints into individual lines removing all indendation so the sort is consistent
+                    const lines = result[1]
+                        .split("\n")
+                        .filter((line) => line.trim().length > 0)
+                        .map(line => line.trim())
+
+                    // Include our new endpoint
+                    lines.push(`app.use('', require("./user-dependencies/${fileName}"));`)
+
+                    // Sort all the endpoints in reverse order to guarantee that endpoints with path parameters
+                    // come second after endpoints that don't have path parameters. For example, consider the following
+                    // two endpoints:
+                    //
+                    //      app.use('', require("./user-dependencies/post.(test).js"));
+                    //      app.use('', require("./user-dependencies/post.test.js"));
+                    //
+                    //  These endpoints represent
+                    //
+                    //      POST /:test
+                    //      POST /test
+                    //
+                    //  Now if a POST request comes into /test, then the ordering matters. Since /:test appears first,
+                    //  that endpoint will be called with the parameter :test = test. This means that it overshadows
+                    //  the other /test endpoint. 
+                    //
+                    //  Sorting in reverse lexicographic order will produce the following:
+                    //
+                    //      app.use('', require("./user-dependencies/post.test.js"));
+                    //      app.use('', require("./user-dependencies/post.(test).js"));
+                    //
+                    //  This is the correct order we want.
+                    const sortedBlock = lines
+                        .sort((a, b) => b.localeCompare(a))
+                        .join("\n");
+
+                    const endpointsBlock = `//SWIZZLE_ENDPOINTS_START\n${sortedBlock}\n\t//SWIZZLE_ENDPOINTS_END`;
+                    const newContent = content.replace(regex, endpointsBlock);
+
                     await serverResource.saveContents(newContent, { encoding: 'utf8' });
                 }
                 
