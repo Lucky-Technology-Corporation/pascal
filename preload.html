@@ -6,4 +6,17 @@
     if(jwt != null){   
         document.cookie = `jwt=${jwt}; path=/; SameSite=None; Secure`;    
     }
+
+    let hasLoaded = false;
+    window.addEventListener('load', function() {
+    hasLoaded = true;
+    });
+
+    window.addEventListener('focus', function(event) {
+    if (!hasLoaded) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    }, true);
+
 </script>
