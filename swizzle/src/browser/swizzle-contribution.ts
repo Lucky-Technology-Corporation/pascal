@@ -379,7 +379,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
                 
             } else if (relativeFilePath.includes("frontend/")) {
-                fileName = filePath.replace("frontend/src/", "");
+                const lastIndex = relativeFilePath.lastIndexOf("/");
+                fileName = relativeFilePath.substring(lastIndex + 1);
                 var fileContent = starterComponent(fileName.replace(".js", ""));
 
                 if (resource.saveContents) {
