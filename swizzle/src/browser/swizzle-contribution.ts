@@ -224,7 +224,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const model = monacoEditor.getModel();
                 const fileContents = model?.getValue() || '';
 
-                const hasPassportAuth = fileContents.includes("requiredAuthentication");
+                const hasPassportAuth = fileContents.includes("requiredAuthentication, async");
                 const hasGetDb = fileContents.includes("const { db } = require('swizzle-js')");
                 const hasNotification = fileContents.includes("const { sendNotification } = require('swizzle-js')");
                 const hasStorage = fileContents.includes("const { saveFile, getFile, deleteFile } = require('swizzle-js')");
