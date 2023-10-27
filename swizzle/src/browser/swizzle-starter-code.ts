@@ -42,7 +42,7 @@ const ${fileName} = () => {
     return (
     <div>
 
-        <!-- Your content here -->
+        {/* Your content here */}
 
     </div>
     );
