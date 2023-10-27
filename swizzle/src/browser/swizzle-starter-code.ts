@@ -17,15 +17,15 @@ module.exports = router;`
 export function starterHTML(){
     const fileContent = `<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    </head>
+    <body>
 
-  <!-- Your content here -->
+        <!-- Your content here -->
 
-</body>
+    </body>
 </html>`
     return fileContent;
 }
@@ -40,11 +40,11 @@ export function starterComponent(fileName: string){
 
 const ${fileName} = () => {
     return (
-    <div>
+        <div>
 
-        {/* Your content here */}
+            {/* Your content here */}
 
-    </div>
+        </div>
     );
 };
 
