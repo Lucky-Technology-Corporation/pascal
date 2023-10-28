@@ -48,6 +48,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
+    private permissionsTerminalWidgetId: string = "";
 
     private frontendTerminalId: string = "";
     private backendTerminalId: string = "";
@@ -189,6 +190,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 console.log(error)
             }
         })
+
+        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/frontend/src", title: "Permissions" }).then(async terminal => {
+            try {
+                await terminal.start();
+                this.permissionsTerminalWidgetId = terminal.id;
+                console.log("Opened permissions terminal" + terminal.id)
+            } catch (error) {
+                console.log(error)
+            }
+        })
+
     }
 
     //Set the file associations
@@ -386,6 +398,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
+
+                //check if this is a subdirectory
+                const basePath = relativeFilePath.split("frontend/src/")[1]
+                if (basePath.includes("/")) {
+                    const newDirectory = basePath.split("/")[0]
+                    const terminal = this.terminalService.all.find(t => t.id === this.permissionsTerminalWidgetId);
+                    terminal?.sendText(`chmod -R 777 ${newDirectory}\n`)
+                    console.log(`sent chmod for ${newDirectory} to terminal ${this.permissionsTerminalWidgetId}`)
+                }
+
             } else if (relativeFilePath.includes("helpers/")) {
                 fileName = filePath.split("backend/helpers/")[1];
                 var fileContent = starterHelper(fileName.replace(".js", ""))
