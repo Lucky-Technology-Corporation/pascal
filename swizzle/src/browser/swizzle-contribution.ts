@@ -282,7 +282,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
-    async removeFile(relativeFilePath: string, endpointName: string): Promise<void>{
+    async removeFile(relativeFilePath: string, endpointName: string, routePath: string): Promise<void>{
         console.log("removeFile")
         if(endpointName != undefined && endpointName !== ""){ //remove from server.js if it's an endpoint
             console.log("remove endpoint")
@@ -298,9 +298,29 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const newContent = content
                     .replace(`\napp.use('', require("./user-dependencies/${fileName}"));`, ``);
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
-                console.log("updated server.js")
             }
         }
+        else if(routePath != undefined && routePath !== ""){ //remove from Routes.js if it's a route
+            console.log("remove route")
+            const lastIndex = relativeFilePath.lastIndexOf("/");
+            var fileName = relativeFilePath.substring(lastIndex + 1);
+
+            const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/Routes.js");
+            const serverResource = await this.resourceProvider(serverUri);
+
+            if (serverResource.saveContents) {
+                var content = await serverResource.readContents({ encoding: 'utf8' });
+
+                const routeToRemoveRegex = new RegExp(`<(Route|PrivateRoute)[^>]*path="${routePath}"[^>]*\/>\n?`, 'g');
+                content = content.replace(routeToRemoveRegex, '');
+              
+                const importToRemoveRegex = new RegExp(`import ${fileName.replace(".js", "")}.*\n`, 'g');
+                content = content.replace(importToRemoveRegex, '');
+              
+                await serverResource.saveContents(content, { encoding: 'utf8' });
+            }
+        }
+
         console.log("removing " + relativeFilePath)
         for (const editorWidget of this.editorManager.all) {
             const editorUri = editorWidget.getResourceUri();
@@ -313,7 +333,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     //accepts something like get-path-to-api.js or post-.js
-    async createNewFile(relativeFilePath: string, endpointName: string): Promise<void> {
+    async createNewFile(relativeFilePath: string, endpointName: string, routePath: string): Promise<void> {
         try {
             var filePath = this.MAIN_DIRECTORY + relativeFilePath
             const uri = new URI(filePath);
@@ -408,6 +428,37 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     console.log(`sent chmod for ${newDirectory} to terminal ${this.permissionsTerminalWidgetId}`)
                 }
 
+                if(relativeFilePath.includes("frontend/src/pages/")){
+                    //Add route to Routes.js
+                    const importStatement = `import ${fileName.replace(".js", "")} from '../components/${fileName.replace(".js", "")}';`
+                    const newRouteDefinition = `<Route path="${routePath}" component={${fileName.replace(".js", "")}} />`
+                    const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/server.js");
+                    const serverResource = await this.resourceProvider(serverUri);
+                    if (serverResource.saveContents) {
+                        var content = await serverResource.readContents({ encoding: 'utf8' });
+
+                        //Update imports
+                        const importRegex = /(import .*\n)+/;
+                        const importMatch = content.match(importRegex);
+                        if (importMatch) {
+                          const newImportBlock = importMatch[0] + importStatement + '\n';
+                          content = content.replace(importRegex, newImportBlock);
+                        }                      
+
+                        //Update routes
+                        const switchRegex = /(<Switch>[\s\S]*?<\/Switch>)/;
+                        const match = content.match(switchRegex);
+                        if (!match){
+                            const oldSwitchBlock = match ? match[1] : '';
+                            const newSwitchBlock = this.addAndSortRoute(oldSwitchBlock, newRouteDefinition);
+                            content = content.replace(switchRegex, newSwitchBlock);
+                        }
+
+                        //Save new file
+                        await serverResource.saveContents(content, { encoding: 'utf8' });
+                    }    
+                }
+
             } else if (relativeFilePath.includes("helpers/")) {
                 fileName = filePath.split("backend/helpers/")[1];
                 var fileContent = starterHelper(fileName.replace(".js", ""))
@@ -420,6 +471,24 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         } catch (error) {
             console.log(error)
         }
+    }
+
+    addAndSortRoute(switchBlock: string, newRoute: string): string {
+        const routeRegex = /<Route[^>]*path="([^"]*)"[^>]*\/>/g;
+        let routes: string[] = [];
+        let match: RegExpExecArray | null;
+        while (match = routeRegex.exec(switchBlock)) {
+            routes.push(match[0]);
+        }
+        routes.push(newRoute);
+    
+        routes.sort((a, b) => {
+            const pathA = a.match(/path="([^"]*)"/)?.[1] ?? '';
+            const pathB = b.match(/path="([^"]*)"/)?.[1] ?? '';
+            return (pathA.match(/\//g) || []).length - (pathB.match(/\//g) || []).length;
+        });
+    
+        return switchBlock.replace(/<Route[^>]*path="([^"]*)"[^>]*\/>/g, '') + routes.join('\n  ');
     }
 
     async saveCurrentFile(): Promise<void> {
@@ -492,13 +561,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.openRelevantTerminal(event.data.fileName)
         } else if (event.data.type === 'newFile') {
             // this.saveCurrentFile();
-            this.createNewFile(event.data.fileName, event.data.endpointName);
+            this.createNewFile(event.data.fileName, event.data.endpointName, event.data.routePath);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
         } else if(event.data.type === 'closeFiles'){
             this.closeOpenFiles();
         } else if(event.data.type === 'removeFile'){
-            this.removeFile(event.data.fileName, event.data.endpointName) 
+            this.removeFile(event.data.fileName, event.data.endpointName, event.data.routePath) 
         } else if(event.data.type === 'closeSearchView'){
             this.closeSearchView() 
         } else if(event.data.type === 'openSearchView'){
