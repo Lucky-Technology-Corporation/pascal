@@ -446,7 +446,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         }                      
 
                         //Update routes
-                        const switchRegex = /(<Switch>[\s\S]*?<\/Switch>)/;
+                        const switchRegex = /(<Routes>[\s\S]*?<\/Routes>)/;
                         const match = content.match(switchRegex);
                         if (!match){
                             const oldSwitchBlock = match ? match[1] : '';
