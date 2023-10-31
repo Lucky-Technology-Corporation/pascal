@@ -300,12 +300,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
             }
         }
-        else if(routePath != undefined && routePath !== ""){ //remove from Routes.js if it's a route
+        else if(routePath != undefined && routePath !== ""){ //remove from RouteList.js if it's a route
             console.log("remove route")
             const lastIndex = relativeFilePath.lastIndexOf("/");
             var fileName = relativeFilePath.substring(lastIndex + 1);
 
-            const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/Routes.js");
+            const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
             const serverResource = await this.resourceProvider(serverUri);
 
             if (serverResource.saveContents) {
@@ -429,10 +429,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
 
                 if(routePath != undefined && routePath !== ""){
-                    //Add route to Routes.js
+                    //Add route to RouteList.js
                     const importStatement = `import ${fileName.replace(".js", "")} from '../${basePath.replace(".js", "")}';`
                     const newRouteDefinition = `<Route path="${routePath}" component={${fileName.replace(".js", "")}} />`
-                    const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/server.js");
+                    const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
                     const serverResource = await this.resourceProvider(serverUri);
                     if (serverResource.saveContents) {
                         var content = await serverResource.readContents({ encoding: 'utf8' });
