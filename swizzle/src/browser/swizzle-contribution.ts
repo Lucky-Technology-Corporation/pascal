@@ -428,9 +428,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     console.log(`sent chmod for ${newDirectory} to terminal ${this.permissionsTerminalWidgetId}`)
                 }
 
-                if(relativeFilePath.includes("frontend/src/pages/")){
+                if(routePath != undefined && routePath !== ""){
                     //Add route to Routes.js
-                    const importStatement = `import ${fileName.replace(".js", "")} from '../components/${fileName.replace(".js", "")}';`
+                    const importStatement = `import ${fileName.replace(".js", "")} from '../${basePath.replace(".js", "")}';`
                     const newRouteDefinition = `<Route path="${routePath}" component={${fileName.replace(".js", "")}} />`
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/server.js");
                     const serverResource = await this.resourceProvider(serverUri);
