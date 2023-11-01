@@ -125,7 +125,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         if(owner.id.includes("/frontend/src/pages/Home.js")){
                             return "/"
                         }
-                        data.title.label = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                        data.title.label = "/" + label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "").toLowerCase();
                     }
                 }
                 const node = originalRenderLabel.call(this, data);
@@ -423,7 +423,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
                 const basePath = relativeFilePath.split("frontend/src/")[1]
 
-                const componentName = basePath.replace(".js", "").slice(basePath.lastIndexOf('/') + 1).replace(/\./g, "_").replace(/(?:^|_)([a-z])/g, (match, p1) => p1.toUpperCase()); //...pages/path.to.component -> Path_To_Component
+                const componentName = basePath
+                    .replace(".js", "")
+                    .slice(basePath.lastIndexOf('/') + 1)
+                    .replace(/\./g, "_")
+                    .replace(/^(.)/, (match, p1) => p1.toUpperCase())
+                    .replace(/_([a-z])/g, (match, p1) => '_' + p1.toUpperCase());
+              
                 const hasAuth = fallbackPath != undefined && fallbackPath !== ""
                 var fileContent = starterComponent(componentName, hasAuth);
 
@@ -490,7 +496,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     addAndSortRoute(switchBlock: string, newRoute: string): string {
-        const routeRegex = /<Route[^>]*path="([^"]*)"[^>]*\/>|<Route[^>]*path="([^"]*)"[^>]*>[^<]*<\/Route>/g;
+        const routeRegex = /<Route[^>]*path="([^"]*)"[^>]*element={<[^>]*\/>}[^>]*\/>/g;
         let routes: string[] = [];
         let match: RegExpExecArray | null;
         while (match = routeRegex.exec(switchBlock)) {

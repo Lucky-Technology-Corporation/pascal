@@ -36,12 +36,11 @@ export function starterCSS(){
 }
 
 export function starterComponent(fileName: string, hasAuth: boolean){
-    const authImport = `import {useAuthUser} from 'react-auth-kit'`
-
+    const authImport = `import {useAuthUser} from 'react-auth-kit'
+`
 
     return `import React from 'react';
 ${hasAuth ? authImport : ''}
-
 const ${fileName} = () => {
     ${hasAuth ? `const auth = useAuthUser();` : ''}
 
