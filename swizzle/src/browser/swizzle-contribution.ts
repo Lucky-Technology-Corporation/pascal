@@ -125,7 +125,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         if(owner.id.includes("/frontend/src/pages/Home.js")){
                             return "/"
                         }
-                        data.title.label = "/" + label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "").toLowerCase();
+                        var labelText = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "").toLowerCase();
+                        if(!labelText.startsWith("/")){
+                            labelText = "/" + labelText
+                        }
+                        data.title.label = labelText
                     }
                 }
                 const node = originalRenderLabel.call(this, data);
