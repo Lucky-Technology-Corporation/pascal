@@ -430,8 +430,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
                 if(routePath != undefined && routePath !== ""){
                     //Add route to RouteList.js
-                    const importStatement = `import ${fileName.replace(".js", "")} from '../${basePath.replace(".js", "")}';`
-                    const newRouteDefinition = `<Route path="${routePath}" component={${fileName.replace(".js", "")}} />`
+                    const componentName = fileName.slice(fileName.lastIndexOf('.') + 1);
+                    const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
+                    const newRouteDefinition = `<Route path="${routePath}" component={${componentName}} />`
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
                     const serverResource = await this.resourceProvider(serverUri);
                     if (serverResource.saveContents) {
@@ -448,7 +449,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         //Update routes
                         const switchRegex = /(<Routes>[\s\S]*?<\/Routes>)/;
                         const match = content.match(switchRegex);
-                        if (!match){
+                        if (match){
                             const oldSwitchBlock = match ? match[1] : '';
                             const newSwitchBlock = this.addAndSortRoute(oldSwitchBlock, newRouteDefinition);
                             content = content.replace(switchRegex, newSwitchBlock);
