@@ -450,9 +450,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         const switchRegex = /(<Routes>[\s\S]*?<\/Routes>)/;
                         const match = content.match(switchRegex);
                         if (match){
-                            const oldSwitchBlock = match ? match[1] : '';
-                            const newSwitchBlock = this.addAndSortRoute(oldSwitchBlock, newRouteDefinition);
-                            content = content.replace(switchRegex, newSwitchBlock);
+                            const oldSwitchBlock = match[1];
+                            const sortedRoutes = this.addAndSortRoute(oldSwitchBlock, newRouteDefinition);
+                            const newSwitchBlock = `<Routes>\n  ${sortedRoutes}\n</Routes>`;
+                            content = content.replace(oldSwitchBlock, newSwitchBlock);
                         }
 
                         //Save new file
@@ -489,7 +490,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             return (pathA.match(/\//g) || []).length - (pathB.match(/\//g) || []).length;
         });
     
-        return switchBlock.replace(/<Route[^>]*path="([^"]*)"[^>]*\/>/g, '') + routes.join('\n  ');
+        return routes.join('\n  ');
     }
 
     async saveCurrentFile(): Promise<void> {
