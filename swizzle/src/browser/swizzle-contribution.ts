@@ -499,8 +499,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         routes.push(newRoute);
     
         routes.sort((a, b) => {
-            const pathB = a.match(/path="([^"]*)"/)?.[1] ?? '';
-            const pathA = b.match(/path="([^"]*)"/)?.[1] ?? '';
+            const pathA = a.match(/path="([^"]*)"/)?.[1] ?? '';
+            const pathB = b.match(/path="([^"]*)"/)?.[1] ?? '';
             return (pathA.match(/\//g) || []).length - (pathB.match(/\//g) || []).length;
         });
     
