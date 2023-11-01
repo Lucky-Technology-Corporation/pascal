@@ -318,7 +318,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             if (serverResource.saveContents) {
                 var content = await serverResource.readContents({ encoding: 'utf8' });
 
-                const routeToRemoveRegex = new RegExp(`<(Route|PrivateRoute)[^>]*path="${routePath}"[^>]*\/>\n?`, 'g');
+                const routeToRemoveRegex = new RegExp(`<(Route|PrivateRoute)[^>]*path="${routePath}"[^>]*element={<[^>]+>}[\\s]*\\/>\n?`, 'g');
                 content = content.replace(routeToRemoveRegex, '');
               
                 const importToRemoveRegex = new RegExp(`import ${fileName.replace(".js", "")}.*\n`, 'g');
@@ -422,7 +422,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 fileName = relativeFilePath.substring(lastIndex + 1);
 
                 const componentName = fileName.replace(".js", "").slice(fileName.lastIndexOf('.') + 1);
-                var fileContent = starterComponent(componentName);
+                const hasAuth = fallbackPath != undefined && fallbackPath !== ""
+                var fileContent = starterComponent(componentName, hasAuth);
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
@@ -440,9 +441,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if(routePath != undefined && routePath !== ""){
                     //Add route to RouteList.js
                     const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
-                    var newRouteDefinition = `<Route path="${routePath}" component={${componentName}} />`
+                    var newRouteDefinition = `<Route path="${routePath}" element={<${componentName} />} />`
                     if(fallbackPath != undefined && fallbackPath !== ""){
-                        newRouteDefinition = `<PrivateRoute path="${routePath}" component={${componentName}} unauthenticatedFallback="${fallbackPath}" />`
+                        newRouteDefinition = `<PrivateRoute path="${routePath}" element={<${componentName} />} unauthenticatedFallback="${fallbackPath}" />`
                     }
 
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
