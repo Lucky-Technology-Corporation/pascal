@@ -421,7 +421,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const lastIndex = relativeFilePath.lastIndexOf("/");
                 fileName = relativeFilePath.substring(lastIndex + 1);
 
-                const componentName = fileName.replace(".js", "").slice(fileName.lastIndexOf('/') + 1);
+                const componentName = fileName.replace(".js", "").slice(fileName.lastIndexOf('.') + 1);
                 var fileContent = starterComponent(componentName);
 
                 if (resource.saveContents) {
