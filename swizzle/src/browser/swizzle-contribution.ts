@@ -119,6 +119,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const firstPart = label.slice(0, firstDotIndex);
                     const secondPart = label.slice(firstDotIndex + 1);
                     data.title.label = firstPart.toUpperCase() + " /" + secondPart.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                } else if(label.replace(".js", "").includes(".")){ //file has dots in the name
+                    data.title.label = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
                 }
 
                 const node = originalRenderLabel.call(this, data);
