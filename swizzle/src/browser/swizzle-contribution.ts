@@ -413,7 +413,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             } else if (relativeFilePath.includes("frontend/")) {
                 const lastIndex = relativeFilePath.lastIndexOf("/");
                 fileName = relativeFilePath.substring(lastIndex + 1);
-                var fileContent = starterComponent(fileName.replace(".js", ""));
+
+                const componentName = fileName.replace(".js", "").slice(fileName.lastIndexOf('.') + 1);
+                var fileContent = starterComponent(componentName);
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
@@ -430,7 +432,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
                 if(routePath != undefined && routePath !== ""){
                     //Add route to RouteList.js
-                    const componentName = fileName.slice(fileName.lastIndexOf('.') + 1);
                     const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
                     const newRouteDefinition = `<Route path="${routePath}" component={${componentName}} />`
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
