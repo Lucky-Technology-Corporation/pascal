@@ -421,7 +421,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const lastIndex = relativeFilePath.lastIndexOf("/");
                 fileName = relativeFilePath.substring(lastIndex + 1);
 
-                const componentName = fileName.replace(".js", "").slice(fileName.lastIndexOf('.') + 1);
+                const basePath = relativeFilePath.split("frontend/src/")[1]
+
+                const componentName = basePath.replace(".js", "").slice(basePath.lastIndexOf('/') + 1).replace(/\./g, "_").replace(/(?:^|_)([a-z])/g, (match, p1) => p1.toUpperCase()); //...pages/path.to.component -> Path_To_Component
                 const hasAuth = fallbackPath != undefined && fallbackPath !== ""
                 var fileContent = starterComponent(componentName, hasAuth);
 
@@ -430,7 +432,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
 
                 //check if this is a subdirectory
-                const basePath = relativeFilePath.split("frontend/src/")[1]
                 if (basePath.includes("/")) {
                     const newDirectory = basePath.split("/")[0]
                     const terminal = this.terminalService.all.find(t => t.id === this.permissionsTerminalWidgetId);
@@ -489,7 +490,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     addAndSortRoute(switchBlock: string, newRoute: string): string {
-        const routeRegex = /<Route[^>]*path="([^"]*)"[^>]*\/>/g;
+        const routeRegex = /<Route[^>]*path="([^"]*)"[^>]*\/>|<Route[^>]*path="([^"]*)"[^>]*>[^<]*<\/Route>/g;
         let routes: string[] = [];
         let match: RegExpExecArray | null;
         while (match = routeRegex.exec(switchBlock)) {
