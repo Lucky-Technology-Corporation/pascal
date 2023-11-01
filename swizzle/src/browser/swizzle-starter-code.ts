@@ -43,7 +43,6 @@ export function starterComponent(fileName: string, hasAuth: boolean){
 ${hasAuth ? authImport : ''}
 const ${fileName} = () => {
     ${hasAuth ? `const auth = useAuthUser();` : ''}
-
     return (
         <div>
 
