@@ -122,10 +122,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 } else{
                     const owner = data.title.owner
                     if(owner.id.includes("/frontend/src/pages/")){
-                        if(owner.id.includes("/frontend/src/pages/Home.js") || owner.id.includes("/frontend/src/pages/Home.private.js")){
+                        if(owner.id.includes("/frontend/src/pages/Home.js")){
                             return "/"
                         }
-                        data.title.label = label.replace(".js", "").replace(".private", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                        data.title.label = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
                     }
                 }
                 const node = originalRenderLabel.call(this, data);
@@ -441,7 +441,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     //Add route to RouteList.js
                     const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
                     var newRouteDefinition = `<Route path="${routePath}" component={${componentName}} />`
-                    if(routePath.includes(".private")){
+                    if(fallbackPath != undefined && fallbackPath !== ""){
                         newRouteDefinition = `<PrivateRoute path="${routePath}" component={${componentName}} unauthenticatedFallback="${fallbackPath}" />`
                     }
 
