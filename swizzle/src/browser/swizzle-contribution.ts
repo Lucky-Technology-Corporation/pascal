@@ -119,18 +119,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const firstPart = label.slice(0, firstDotIndex);
                     const secondPart = label.slice(firstDotIndex + 1);
                     data.title.label = firstPart.toUpperCase() + " /" + secondPart.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
-                } else{ //file has dots in the name
+                } else{
                     const owner = data.title.owner
-                    console.log("owner data")
-                    console.log(owner.id)
                     if(owner.id.includes("/frontend/src/pages/")){
-                        if(owner.id.includes("/frontend/src/pages/Home.js")){
+                        if(owner.id.includes("/frontend/src/pages/Home.js") || owner.id.includes("/frontend/src/pages/Home.private.js")){
                             return "/"
                         }
-                        data.title.label = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                        data.title.label = label.replace(".js", "").replace(".private", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
                     }
                 }
-
                 const node = originalRenderLabel.call(this, data);
                 return node;
             };
@@ -343,7 +340,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     //accepts something like get-path-to-api.js or post-.js
-    async createNewFile(relativeFilePath: string, endpointName: string, routePath: string): Promise<void> {
+    async createNewFile(relativeFilePath: string, endpointName: string, routePath: string, fallbackPath: string): Promise<void> {
         try {
             var filePath = this.MAIN_DIRECTORY + relativeFilePath
             const uri = new URI(filePath);
@@ -443,7 +440,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if(routePath != undefined && routePath !== ""){
                     //Add route to RouteList.js
                     const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
-                    const newRouteDefinition = `<Route path="${routePath}" component={${componentName}} />`
+                    var newRouteDefinition = `<Route path="${routePath}" component={${componentName}} />`
+                    if(routePath.includes(".private")){
+                        newRouteDefinition = `<PrivateRoute path="${routePath}" component={${componentName}} unauthenticatedFallback="${fallbackPath}" />`
+                    }
+
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
                     const serverResource = await this.resourceProvider(serverUri);
                     if (serverResource.saveContents) {
@@ -574,7 +575,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             this.openRelevantTerminal(event.data.fileName)
         } else if (event.data.type === 'newFile') {
             // this.saveCurrentFile();
-            this.createNewFile(event.data.fileName, event.data.endpointName, event.data.routePath);
+            this.createNewFile(event.data.fileName, event.data.endpointName, event.data.routePath, event.data.fallbackPath);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
         } else if(event.data.type === 'closeFiles'){
