@@ -119,8 +119,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const firstPart = label.slice(0, firstDotIndex);
                     const secondPart = label.slice(firstDotIndex + 1);
                     data.title.label = firstPart.toUpperCase() + " /" + secondPart.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
-                } else if(label.replace(".js", "").includes(".")){ //file has dots in the name
-                    data.title.label = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                } else{ //file has dots in the name
+                    const owner = data.title.owner
+                    console.log("owner data")
+                    console.log(owner.id)
+                    if(owner.id.includes("/frontend/src/pages/")){
+                        if(owner.id.includes("/frontend/src/pages/Home.js")){
+                            return "/"
+                        }
+                        data.title.label = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                    }
                 }
 
                 const node = originalRenderLabel.call(this, data);
@@ -488,8 +496,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         routes.push(newRoute);
     
         routes.sort((a, b) => {
-            const pathA = a.match(/path="([^"]*)"/)?.[1] ?? '';
-            const pathB = b.match(/path="([^"]*)"/)?.[1] ?? '';
+            const pathB = a.match(/path="([^"]*)"/)?.[1] ?? '';
+            const pathA = b.match(/path="([^"]*)"/)?.[1] ?? '';
             return (pathA.match(/\//g) || []).length - (pathB.match(/\//g) || []).length;
         });
     
