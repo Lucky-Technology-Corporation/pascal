@@ -454,7 +454,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
                     var newRouteDefinition = `<Route path="${routePath}" element={<${componentName} />} />`
                     if(fallbackPath != undefined && fallbackPath !== ""){
-                        newRouteDefinition = `<PrivateRoute path="${routePath}" element={<${componentName} />} unauthenticatedFallback="${fallbackPath}" />`
+                        newRouteDefinition = `<PrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" element={<${componentName} />} />`
                     }
 
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
