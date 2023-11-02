@@ -118,14 +118,14 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     const firstDotIndex = label.indexOf('.');
                     const firstPart = label.slice(0, firstDotIndex);
                     const secondPart = label.slice(firstDotIndex + 1);
-                    data.title.label = firstPart.toUpperCase() + " /" + secondPart.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
+                    data.title.label = firstPart.toUpperCase() + " /" + secondPart.replace(".ts", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "");
                 } else{
                     const owner = data.title.owner
                     if(owner.id.includes("/frontend/src/pages/")){
-                        if(owner.id.includes("/frontend/src/pages/Home.js")){
+                        if(owner.id.includes("/frontend/src/pages/SwizzleHomePage.ts")){
                             return "/"
                         }
-                        var labelText = label.replace(".js", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "").toLowerCase();
+                        var labelText = label.replace(".ts", "").replace(/\./g, "/").replace(/\(/g, ":").replace(/\)/g, "").toLowerCase();
                         if(!labelText.startsWith("/")){
                             labelText = "/" + labelText
                         }
@@ -248,9 +248,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const fileContents = model?.getValue() || '';
 
                 const hasPassportAuth = fileContents.includes("requiredAuthentication, async");
-                const hasGetDb = fileContents.includes("const { db } = require('swizzle-js')");
-                const hasNotification = fileContents.includes("const { sendNotification } = require('swizzle-js')");
-                const hasStorage = fileContents.includes("const { saveFile, getFile, deleteFile } = require('swizzle-js')");
+                const hasGetDb = fileContents.includes("import { db } = from 'swizzle-js'");
+                const hasNotification = fileContents.includes("import { sendNotification } = from 'swizzle-js'");
+                const hasStorage = fileContents.includes("import { saveFile, getFile, deleteFile } = from 'swizzle-js'");
 
                 window.parent.postMessage({
                     type: 'fileChanged',
@@ -295,12 +295,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     async removeFile(relativeFilePath: string, endpointName: string, routePath: string): Promise<void>{
         console.log("removeFile")
-        if(endpointName != undefined && endpointName !== ""){ //remove from server.js if it's an endpoint
+        if(endpointName != undefined && endpointName !== ""){ //remove from server.ts if it's an endpoint
             console.log("remove endpoint")
             const lastIndex = relativeFilePath.lastIndexOf("/");
             var fileName = relativeFilePath.substring(lastIndex + 1);
 
-            const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.js");
+            const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.ts");
             const serverResource = await this.resourceProvider(serverUri);
 
             if (serverResource.saveContents) {
@@ -311,12 +311,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 await serverResource.saveContents(newContent, { encoding: 'utf8' });
             }
         }
-        else if(routePath != undefined && routePath !== ""){ //remove from RouteList.js if it's a route
+        else if(routePath != undefined && routePath !== ""){ //remove from RouteList.ts if it's a route
             console.log("remove route")
             const lastIndex = relativeFilePath.lastIndexOf("/");
             var fileName = relativeFilePath.substring(lastIndex + 1);
 
-            const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
+            const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.tsx");
             const serverResource = await this.resourceProvider(serverUri);
 
             if (serverResource.saveContents) {
@@ -325,7 +325,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const routeToRemoveRegex = new RegExp(`<(Route|PrivateRoute)[^>]*path="${routePath}"[^>]*element={<[^>]+>}[\\s]*\\/>\n?`, 'g');
                 content = content.replace(routeToRemoveRegex, '');
               
-                const importToRemoveRegex = new RegExp(`import ${fileName.replace(".js", "")}.*\n`, 'g');
+                const importToRemoveRegex = new RegExp(`import ${fileName.replace(".tsx", "")}.*\n`, 'g');
                 content = content.replace(importToRemoveRegex, '');
               
                 await serverResource.saveContents(content, { encoding: 'utf8' });
@@ -343,7 +343,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
     }
 
-    //accepts something like get-path-to-api.js or post-.js
+    //accepts something like get-path-to-api.ts or post-.ts
     async createNewFile(relativeFilePath: string, endpointName: string, routePath: string, fallbackPath: string): Promise<void> {
         try {
             var filePath = this.MAIN_DIRECTORY + relativeFilePath
@@ -364,19 +364,19 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
                 }
 
-                //add the reference to server.js
-                const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.js");
+                //add the reference to server.ts
+                const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.ts");
                 const serverResource = await this.resourceProvider(serverUri);
                 if (serverResource.saveContents) {
                     const content = await serverResource.readContents({ encoding: 'utf8' });
 
-                    // Search for block of endpoints in server.js and using the capture group to get all the endpoints.
+                    // Search for block of endpoints in server.ts and using the capture group to get all the endpoints.
                     const regex = /\/\/SWIZZLE_ENDPOINTS_START([\s\S]*)\/\/SWIZZLE_ENDPOINTS_END/g;
                     const result = regex.exec(content);
 
                     // If we can't find the endpoints block, then just return
                     if (!result || result.length < 2) {
-                        console.log("Could not find endpoints block in server.js");
+                        console.log("Could not find endpoints block in server.ts");
                         return;
                     }
 
@@ -393,8 +393,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     // come second after endpoints that don't have path parameters. For example, consider the following
                     // two endpoints:
                     //
-                    //      app.use('', require("./user-dependencies/post.(test).js"));
-                    //      app.use('', require("./user-dependencies/post.test.js"));
+                    //      app.use('', require("./user-dependencies/post.(test).ts"));
+                    //      app.use('', require("./user-dependencies/post.test.ts"));
                     //
                     //  These endpoints represent
                     //
@@ -407,8 +407,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     //
                     //  Sorting in reverse lexicographic order will produce the following:
                     //
-                    //      app.use('', require("./user-dependencies/post.test.js"));
-                    //      app.use('', require("./user-dependencies/post.(test).js"));
+                    //      app.use('', require("./user-dependencies/post.test.ts"));
+                    //      app.use('', require("./user-dependencies/post.(test).ts"));
                     //
                     //  This is the correct order we want.
                     const sortedBlock = lines
@@ -428,7 +428,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const basePath = relativeFilePath.split("frontend/src/")[1]
 
                 const componentName = basePath
-                    .replace(".js", "")
+                    .replace(".ts", "")
                     .slice(basePath.lastIndexOf('/') + 1)
                     .replace(/\./g, "_")
                     .replace(/^(.)/, (match, p1) => p1.toUpperCase())
@@ -450,14 +450,14 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 }
 
                 if(routePath != undefined && routePath !== ""){
-                    //Add route to RouteList.js
-                    const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
+                    //Add route to RouteList.ts
+                    const importStatement = `import ${componentName} from './${basePath.replace(".tsx", "")}';`
                     var newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<${componentName} />} />`
                     if(fallbackPath != undefined && fallbackPath !== ""){
                         newRouteDefinition = `<SwizzlePrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" element={<${componentName} />} />`
                     }
 
-                    const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
+                    const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.tsx");
                     const serverResource = await this.resourceProvider(serverUri);
                     if (serverResource.saveContents) {
                         var content = await serverResource.readContents({ encoding: 'utf8' });
@@ -487,7 +487,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
             } else if (relativeFilePath.includes("helpers/")) {
                 fileName = filePath.split("backend/helpers/")[1];
-                var fileContent = starterHelper(fileName.replace(".js", ""))
+                var fileContent = starterHelper(fileName.replace(".ts", ""))
                 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
