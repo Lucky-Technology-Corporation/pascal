@@ -452,9 +452,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 if(routePath != undefined && routePath !== ""){
                     //Add route to RouteList.js
                     const importStatement = `import ${componentName} from './${basePath.replace(".js", "")}';`
-                    var newRouteDefinition = `<Route path="${routePath}" element={<${componentName} />} />`
+                    var newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<${componentName} />} />`
                     if(fallbackPath != undefined && fallbackPath !== ""){
-                        newRouteDefinition = `<PrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" element={<${componentName} />} />`
+                        newRouteDefinition = `<SwizzlePrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" element={<${componentName} />} />`
                     }
 
                     const serverUri = new URI(this.MAIN_DIRECTORY + "/frontend/src/RouteList.js");
@@ -471,12 +471,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                         }                      
 
                         //Update routes
-                        const switchRegex = /(<Routes>[\s\S]*?<\/Routes>)/;
+                        const switchRegex = /(<SwizzleRoutes>[\s\S]*?<\/SwizzleRoutes>)/;
                         const match = content.match(switchRegex);
                         if (match){
                             const oldSwitchBlock = match[1];
                             const sortedRoutes = this.addAndSortRoute(oldSwitchBlock, newRouteDefinition);
-                            const newSwitchBlock = `<Routes>\n  ${sortedRoutes}\n</Routes>`;
+                            const newSwitchBlock = `<SwizzleRoutes>\n  ${sortedRoutes}\n</SwizzleRoutes>`;
                             content = content.replace(oldSwitchBlock, newSwitchBlock);
                         }
 
@@ -500,7 +500,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     addAndSortRoute(switchBlock: string, newRoute: string): string {
-        const routeRegex = /<Route[^>]*path="([^"]*)"[^>]*element={<[^>]*\/>}[^>]*\/>/g;
+        const routeRegex = /<SwizzleRoute[^>]*path="([^"]*)"[^>]*element={<[^>]*\/>}[^>]*\/>/g;
         let routes: string[] = [];
         let match: RegExpExecArray | null;
         while (match = routeRegex.exec(switchBlock)) {
