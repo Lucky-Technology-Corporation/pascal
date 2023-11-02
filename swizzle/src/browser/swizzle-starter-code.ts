@@ -35,14 +35,18 @@ export function starterCSS(){
     return fileContent;
 }
 
-export function starterComponent(fileName: string, hasAuth: boolean){
+export function starterComponent(fileName: string, hasAuth: boolean, path: string){
+    const levels = path.split('/').length - 1;
+    const apiImport = '../'.repeat(levels) + 'api';
+
     const authImport = `import {useAuthUser} from 'react-auth-kit'
 `
 
     return `import React from 'react';
+import api from '${apiImport}'; //Remove if not needed
 ${hasAuth ? authImport : ''}
 const ${fileName} = () => {
-    ${hasAuth ? `const auth = useAuthUser();` : ''}
+    ${hasAuth ? `const auth = useAuthUser(); //Remove if not needed` : ''}
     return (
         <div>
             {/* Your content here */}

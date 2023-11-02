@@ -435,7 +435,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     .replace(/_([a-z])/g, (match, p1) => '_' + p1.toUpperCase());
               
                 const hasAuth = fallbackPath != undefined && fallbackPath !== ""
-                var fileContent = starterComponent(componentName, hasAuth);
+                var fileContent = starterComponent(componentName, hasAuth, basePath);
 
                 if (resource.saveContents) {
                     await resource.saveContents(fileContent, { encoding: 'utf8' });
