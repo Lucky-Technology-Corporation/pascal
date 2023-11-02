@@ -45,9 +45,7 @@ const ${fileName} = () => {
     ${hasAuth ? `const auth = useAuthUser();` : ''}
     return (
         <div>
-
             {/* Your content here */}
-
         </div>
     );
 };
