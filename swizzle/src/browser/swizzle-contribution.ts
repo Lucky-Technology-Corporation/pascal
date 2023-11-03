@@ -438,6 +438,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const basePath = relativeFilePath.split("frontend/src/")[1]
 
                 const componentName = basePath
+                    .replace(".tsx", "")
                     .replace(".ts", "")
                     .slice(basePath.lastIndexOf('/') + 1)
                     .replace(/\./g, "_")
