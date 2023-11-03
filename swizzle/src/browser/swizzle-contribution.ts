@@ -46,6 +46,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     @inject(DebugConsoleContribution)
     protected readonly debugConsole: DebugConsoleContribution;
 
+    private previousEditor: EditorWidget | undefined;
+
     private lastPrependedText?: string;
     private terminalWidgetId: string = "";
     private permissionsTerminalWidgetId: string = "";
@@ -66,7 +68,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
 
         //Only save when changing files
-        this.preferenceService.set('files.autoSave', 'onFocusChange');
+        // this.preferenceService.set('files.autoSave', 'onFocusChange');
 
         //Listen for incoming messages 
         window.addEventListener('message', this.handlePostMessage.bind(this));
@@ -237,9 +239,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
 
     //Notify the parent that the current file has changed
-    protected handleEditorChanged(): void {
+    protected async handleEditorChanged(): Promise<void> {
         if (!this.editorManager) { return; }
+
+        //Save previous file
+        if (this.previousEditor && this.previousEditor.editor) {
+            await this.previousEditor.saveable.save()
+        }
+
         const editor = this.editorManager.currentEditor;
+        this.previousEditor = editor;
+
         if (editor) {
             const fileUri = editor.editor.uri.toString();
             if (editor.editor instanceof MonacoEditor) {
@@ -582,11 +592,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     protected async handlePostMessage(event: MessageEvent): Promise<void> {
         // Check the origin or some other authentication method if necessary
         if (event.data.type === 'openFile') {
-            // this.saveCurrentFile();
             this.openExistingFile(event.data.fileName)
             this.openRelevantTerminal(event.data.fileName)
         } else if (event.data.type === 'newFile') {
-            // this.saveCurrentFile();
             this.createNewFile(event.data.fileName, event.data.endpointName, event.data.routePath, event.data.fallbackPath);
         } else if (event.data.type === 'saveFile') {
             this.saveCurrentFile();
