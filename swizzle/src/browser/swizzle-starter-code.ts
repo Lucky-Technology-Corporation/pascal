@@ -1,8 +1,8 @@
 export function starterEndpoint(method: string, endpoint: string){
     const fileContent = 
-`import express = from 'express';
+`import express from 'express';
 const router = express.Router();
-import { optionalAuthentication, requiredAuthentication } = from 'swizzle-js';
+import { optionalAuthentication, requiredAuthentication } from 'swizzle-js';
 
 router.${method}('${endpoint}', optionalAuthentication, async (request, response) => {
     //Your code goes here
