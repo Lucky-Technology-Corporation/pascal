@@ -216,7 +216,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     //Set the file associations
     async setFileAssociations(): Promise<void> {
-        this.preferenceService.set('files.defaultLanguage', 'javascript', PreferenceScope.User);
+        this.preferenceService.set('files.defaultLanguage', 'typescript', PreferenceScope.User);
 
         const existingAssociations = this.preferenceService.get('files.associations') || {};
         const newAssociations = {
