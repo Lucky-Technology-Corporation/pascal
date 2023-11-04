@@ -274,9 +274,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     type: 'fileChanged',
                     fileUri: fileUri,
                     hasPassportAuth: hasPassportAuth,
-                    hasGetDb: hasGetDb,
-                    hasNotification: hasNotification,
-                    hasStorage: hasStorage,
+                    hasGetDb: hasGetDb, //unused
+                    hasNotification: hasNotification, //unused
+                    hasStorage: hasStorage, //unused
                     swizzleImportStatement: importStatement,
                 }, '*');
             }
@@ -578,6 +578,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 widget.close();
             }
         });
+
+        //In case the debugger is still open, close it
+        setTimeout(() => {
+            this.shell.collapsePanel("left")
+        }, 500);
     }
 
     async runCommand(command: any): Promise<void> {
