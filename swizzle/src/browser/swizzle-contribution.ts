@@ -266,13 +266,18 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const hasNotification = fileContents.includes("import { sendNotification } = from 'swizzle-js'");
                 const hasStorage = fileContents.includes("import { saveFile, getFile, deleteFile } = from 'swizzle-js'");
 
+                const swizzleImportRegex = /import\s+{[^}]*}\s+from\s+['"]swizzle-js['"];?/g;
+                const matches = fileContents.match(swizzleImportRegex);
+                const importStatement =  matches ? matches[0] : null;
+            
                 window.parent.postMessage({
                     type: 'fileChanged',
                     fileUri: fileUri,
                     hasPassportAuth: hasPassportAuth,
                     hasGetDb: hasGetDb,
                     hasNotification: hasNotification,
-                    hasStorage: hasStorage
+                    hasStorage: hasStorage,
+                    swizzleImportStatement: importStatement,
                 }, '*');
             }
         }
@@ -643,49 +648,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             terminalWidget.sendText(`npm uninstall ${packageName}\n`);
         } else if (event.data.type === 'findAndReplace') {
             const textToFind = event.data.findText;
-            const replaceWith = event.data.replaceText;
-            const currentEditorWidget = this.editorManager.currentEditor;
-        
-            if (currentEditorWidget) {
-                const editor = currentEditorWidget.editor;
-        
-                if (editor instanceof MonacoEditor) {
-                    const monacoEditor = editor.getControl();
-                    const model = monacoEditor.getModel();
-        
-                    if (model) {
-                        const docContent = model.getValue();
-                        let findStartIndex = docContent.indexOf(textToFind);
-                        const editOperations = [];
-        
-                        while (findStartIndex !== -1) {
-                            const findEndIndex = findStartIndex + textToFind.length;
-                            const start = model.getPositionAt(findStartIndex);
-                            const end = model.getPositionAt(findEndIndex);
-        
-                            const findRange = {
-                                startLineNumber: start.lineNumber,
-                                startColumn: start.column,
-                                endLineNumber: end.lineNumber,
-                                endColumn: end.column
-                            };
-        
-                            editOperations.push({
-                                range: findRange,
-                                text: replaceWith,
-                                forceMoveMarkers: true
-                            });
-        
-                            findStartIndex = docContent.indexOf(textToFind, findEndIndex);
-                        }
-        
-                        // Execute all replace operations
-                        if (editOperations.length > 0) {
-                            model.pushEditOperations([], editOperations, () => null);
-                        }
-                    }
-                }
-            }
+            const replaceWith = event.data.replaceText;    
+            this.findAndReplace(textToFind, replaceWith)
         } else if (event.data.type === 'prependText') {
             const content = event.data.content;
             const currentEditorWidget = this.editorManager.currentEditor;
@@ -751,6 +715,51 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                     }
                 }
             }        
+        }
+    }
+
+    findAndReplace(textToFind: string, replaceWith: string){
+        const currentEditorWidget = this.editorManager.currentEditor;
+    
+        if (currentEditorWidget) {
+            const editor = currentEditorWidget.editor;
+    
+            if (editor instanceof MonacoEditor) {
+                const monacoEditor = editor.getControl();
+                const model = monacoEditor.getModel();
+    
+                if (model) {
+                    const docContent = model.getValue();
+                    let findStartIndex = docContent.indexOf(textToFind);
+                    const editOperations = [];
+    
+                    while (findStartIndex !== -1) {
+                        const findEndIndex = findStartIndex + textToFind.length;
+                        const start = model.getPositionAt(findStartIndex);
+                        const end = model.getPositionAt(findEndIndex);
+    
+                        const findRange = {
+                            startLineNumber: start.lineNumber,
+                            startColumn: start.column,
+                            endLineNumber: end.lineNumber,
+                            endColumn: end.column
+                        };
+    
+                        editOperations.push({
+                            range: findRange,
+                            text: replaceWith,
+                            forceMoveMarkers: true
+                        });
+    
+                        findStartIndex = docContent.indexOf(textToFind, findEndIndex);
+                    }
+    
+                    // Execute all replace operations
+                    if (editOperations.length > 0) {
+                        model.pushEditOperations([], editOperations, () => null);
+                    }
+                }
+            }
         }
     }
 }
