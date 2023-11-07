@@ -281,6 +281,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 const matches = fileContents.match(swizzleImportRegex);
                 const importStatement =  matches ? matches[0] : null;
             
+                this.openRelevantTerminal(fileUri)
+
                 window.parent.postMessage({
                     type: 'fileChanged',
                     fileUri: fileUri,
