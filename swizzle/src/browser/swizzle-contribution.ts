@@ -1,14 +1,14 @@
 import { MaybePromise, MessageService } from "@theia/core";
 import {
-  ApplicationShell,
-  FrontendApplication,
-  FrontendApplicationContribution,
-  TabBarRenderer,
+    ApplicationShell,
+    FrontendApplication,
+    FrontendApplicationContribution,
+    TabBarRenderer,
 } from "@theia/core/lib/browser";
 import { FrontendApplicationStateService } from "@theia/core/lib/browser/frontend-application-state";
 import {
-  PreferenceScope,
-  PreferenceService,
+    PreferenceScope,
+    PreferenceService,
 } from "@theia/core/lib/browser/preferences";
 import { ResourceProvider } from "@theia/core/lib/common";
 import { CommandRegistry } from "@theia/core/lib/common/command";
@@ -20,9 +20,9 @@ import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
 import { TerminalService } from "@theia/terminal/lib/browser/base/terminal-service";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
 import {
-  starterComponent,
-  starterEndpoint,
-  starterHelper,
+    starterComponent,
+    starterEndpoint,
+    starterHelper,
 } from "./swizzle-starter-code";
 
 @injectable()
@@ -211,7 +211,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           await terminal.start();
           this.terminalService.open(terminal);
           terminal.sendText(`pkill -f "tail -f app.log"\n`);
-          await this.delay(100);
+          await this.delay(250);
           terminal.sendText("tail -f app.log\n");
           this.frontendTerminalId = terminal.id;
           terminal.clearOutput();
@@ -242,7 +242,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           // terminal.sendText("chmod +x /app/tail-logs.sh\n");
           // terminal.sendText("/app/tail-logs.sh app.log\n");
           terminal.sendText(`pkill -f "tail -f server.log"\n`);
-          await this.delay(100);
+          await this.delay(250);
           terminal.sendText("tail -f server.log\n");
           this.backendTerminalId = terminal.id;
           terminal.clearOutput();
