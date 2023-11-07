@@ -49,7 +49,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     private previousEditor: EditorWidget | undefined;
 
     private lastPrependedText?: string;
-    private terminalWidgetId: string = "";
+    private hiddenBackendTerminalId: string = "";
+    private hiddenFrontendTerminalId: string = "";
     private permissionsTerminalWidgetId: string = "";
 
     private frontendTerminalId: string = "";
@@ -198,11 +199,21 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             console.log(error);
         });
 
-        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/backend", title: "Packages" }).then(async terminal => {
+        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/backend", title: "Backend Packages" }).then(async terminal => {
             try {
                 await terminal.start();
-                this.terminalWidgetId = terminal.id;
-                console.log("Opened package terminal" + terminal.id)
+                this.hiddenBackendTerminalId = terminal.id;
+                console.log("Opened backend package terminal" + terminal.id)
+            } catch (error) {
+                console.log(error)
+            }
+        })
+
+        this.terminalService.newTerminal({ hideFromUser: true, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/frontend", title: "Frontend Packages" }).then(async terminal => {
+            try {
+                await terminal.start();
+                this.hiddenFrontendTerminalId = terminal.id;
+                console.log("Opened frontend package terminal" + terminal.id)
             } catch (error) {
                 console.log(error)
             }
@@ -634,22 +645,20 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         } else if (event.data.type === 'addPackage') {
             const packageName = event.data.packageName;
             const directory = event.data.directory;
-            const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
+            const terminalWidget = directory == "backend" ? this.terminalService.getById(this.hiddenBackendTerminalId!) : this.terminalService.getById(this.hiddenFrontendTerminalId!)
             if (!terminalWidget) {
                 this.messageService.error(`Terminal not found`);
                 return;
             }
-            terminalWidget.sendText(`cd ${this.MAIN_DIRECTORY}/${directory}\n`);
             terminalWidget.sendText(`npm install ${packageName} --save\n`);
         } else if (event.data.type === 'removePackage') {
             const packageName = event.data.packageName;
             const directory = event.data.directory;
-            const terminalWidget = this.terminalService.getById(this.terminalWidgetId!)
+            const terminalWidget = directory == "backend" ? this.terminalService.getById(this.hiddenBackendTerminalId!) : this.terminalService.getById(this.hiddenFrontendTerminalId!)
             if (!terminalWidget) {
                 this.messageService.error(`Terminal not found`);
                 return;
             }
-            terminalWidget.sendText(`cd ${this.MAIN_DIRECTORY}/${directory}\n`);
             terminalWidget.sendText(`npm uninstall ${packageName}\n`);
         } else if (event.data.type === 'findAndReplace') {
             const textToFind = event.data.findText;
