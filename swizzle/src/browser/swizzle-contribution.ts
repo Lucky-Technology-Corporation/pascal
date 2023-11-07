@@ -159,6 +159,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }    
 
     protected openTerminal(): void {
+        console.log(`Number of terminals open: ${this.terminalService.all.length}`)
+
         this.terminalService.newTerminal({ hideFromUser: false, isTransient: true, destroyTermOnClose: true, cwd: this.MAIN_DIRECTORY + "/frontend", title: "Frontend Logs" }).then(async terminal => {
             try {
                 await terminal.start();
