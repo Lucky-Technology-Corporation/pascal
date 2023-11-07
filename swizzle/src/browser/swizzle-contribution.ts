@@ -187,7 +187,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
                 // terminal.sendText("/app/tail-logs.sh app.log\n");
                 terminal.sendText(`pkill -f "tail -f app.log"\n`);
                 await this.delay(100)
-                terminal.sendText("tail -f app.log\n");
+                terminal.sendText("tail -f server.log\n");
                 this.backendTerminalId = terminal.id;
                 terminal.clearOutput()
                 console.log("Opened backend logs terminal" + terminal.id)
