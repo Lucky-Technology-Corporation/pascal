@@ -451,9 +451,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const content = await serverResource.readContents({ encoding: "utf8" });
 
         const newContent = content.replace(
-          `\napp.use('', require("./user-dependencies/${fileName.replace(
+          `\nloadRouter("./user-dependencies/${fileName.replace(
             /\.ts$/,
-            "",
+            ".js",
           )}"));`,
           ``,
         );
@@ -555,9 +555,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
           // Include our new endpoint
           lines.push(
-            `app.use('', require("./user-dependencies/${fileName.replace(
+            `loadRouter("./user-dependencies/${fileName.replace(
               /\.ts$/,
-              "",
+              ".js",
             )}"));`,
           );
 
@@ -565,8 +565,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           // come second after endpoints that don't have path parameters. For example, consider the following
           // two endpoints:
           //
-          //      app.use('', require("./user-dependencies/post.(test)"));
-          //      app.use('', require("./user-dependencies/post.test"));
+          //      loadRouter("./user-dependencies/post.(test).js"));
+          //      loadRouter("./user-dependencies/post.test.js"));
           //
           //  These endpoints represent
           //
@@ -579,8 +579,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           //
           //  Sorting in reverse lexicographic order will produce the following:
           //
-          //      app.use('', require("./user-dependencies/post.test"));
-          //      app.use('', require("./user-dependencies/post.(test)"));
+          //      loadRouter("./user-dependencies/post.test.js"));
+          //      loadRouter("./user-dependencies/post.(test).js"));
           //
           //  This is the correct order we want.
           const sortedBlock = lines

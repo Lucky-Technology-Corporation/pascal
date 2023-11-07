@@ -9,7 +9,7 @@ router.${method}('${endpoint}', optionalAuthentication, async (request: Authenti
     return response.json({ message: "It works!" });
 });
 
-module.exports = router;`
+export default router;`
 
     return fileContent;
 }
