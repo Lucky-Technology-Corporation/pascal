@@ -633,7 +633,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           )}';`;
           var newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<${componentName} />} />`;
           if (fallbackPath != undefined && fallbackPath !== "") {
-            newRouteDefinition = `<SwizzlePrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" element={<${componentName} />} />`;
+            newRouteDefinition = `<SwizzlePrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" pageComponent={<${componentName} />} />`;
           }
 
           const serverUri = new URI(
