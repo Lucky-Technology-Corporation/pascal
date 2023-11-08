@@ -157,11 +157,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         } else {
           const owner = data.title.owner;
           if (owner.id.includes("/frontend/src/pages/")) {
-            if (owner.id.includes("/frontend/src/pages/SwizzleHomePage.ts")) {
+            if (owner.id.includes("/frontend/src/pages/SwizzleHomePage")) {
               return "/";
             }
             var labelText = label
-              .replace(".ts", "")
+              .replace(".tsx", "")
               .replace(/\./g, "/")
               .replace(/\(/g, ":")
               .replace(/\)/g, "")
