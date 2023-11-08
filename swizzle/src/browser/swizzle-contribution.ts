@@ -454,7 +454,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           `\nloadRouter("./user-dependencies/${fileName.replace(
             /\.ts$/,
             ".js",
-          )}"));`,
+          )}");`,
           ``,
         );
         await serverResource.saveContents(newContent, { encoding: "utf8" });
