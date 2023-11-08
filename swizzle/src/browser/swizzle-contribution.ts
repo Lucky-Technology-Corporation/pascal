@@ -464,6 +464,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       console.log("remove route");
       const lastIndex = relativeFilePath.lastIndexOf("/");
       var fileName = relativeFilePath.substring(lastIndex + 1);
+      console.log(fileName)
 
       const serverUri = new URI(
         this.MAIN_DIRECTORY + "/frontend/src/RouteList.tsx",
@@ -634,7 +635,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           )}';`;
           var newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<${componentName} />} />`;
           if (fallbackPath != undefined && fallbackPath !== "") {
-            newRouteDefinition = `<SwizzleRoute path="/${routePath}" element={<SwizzlePrivateRoute unauthenticatedFallback="${fallbackPath}" pageComponent={<${componentName} />} />} />`
+            newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<SwizzlePrivateRoute unauthenticatedFallback="${fallbackPath}" pageComponent={<${componentName} />} /> } />`
           }
 
           const serverUri = new URI(
@@ -685,8 +686,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   }
 
   addAndSortRoute(switchBlock: string, newRoute: string): string {
-    const routeRegex =
-      /<SwizzleRoute[^>]*path="([^"]*)"[^>]*element={<[^>]*\/>}[^>]*\/>/g;
+    // `<SwizzleRoute path="${routePath.replace("/", "\/")}".*>`,
+
+    // const routeRegex = /<SwizzleRoute[^>]*path="([^"]*)"[^>]*element={<[^>]*\/>}[^>]*\/>/g;
+    const routeRegex = /<SwizzleRoute [^>]*path="([^"]*)"[^>].*/g
     let routes: string[] = [];
     let match: RegExpExecArray | null;
     while ((match = routeRegex.exec(switchBlock))) {
