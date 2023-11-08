@@ -474,8 +474,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         var content = await serverResource.readContents({ encoding: "utf8" });
 
         const routeToRemoveRegex = new RegExp(
-          `<(Route|PrivateRoute)[^>]*path="${routePath}"[^>]*element={<[^>]+>}[\\s]*\\/>\n?`,
-          "g",
+            // `<\\w+Route[^>]*path="${routePath}"[^>]*element={<[^>]+>}[^>]*\\/?>\\s*`,
+            `<SwizzleRoute path="${routePath.replace("/", "\/")}".*>`,
+            "g",
         );
         content = content.replace(routeToRemoveRegex, "");
 
@@ -633,7 +634,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           )}';`;
           var newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<${componentName} />} />`;
           if (fallbackPath != undefined && fallbackPath !== "") {
-            newRouteDefinition = `<SwizzlePrivateRoute path="${routePath}" unauthenticatedFallback="${fallbackPath}" pageComponent={<${componentName} />} />`;
+            newRouteDefinition = `<SwizzleRoute path="/${routePath}" element={<SwizzlePrivateRoute unauthenticatedFallback="${fallbackPath}" pageComponent={<${componentName} />} />} />`
           }
 
           const serverUri = new URI(
