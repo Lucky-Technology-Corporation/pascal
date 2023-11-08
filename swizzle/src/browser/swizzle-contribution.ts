@@ -348,7 +348,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     //Save previous file
-    if (this.previousEditor && this.previousEditor.editor) {
+    if (this.previousEditor && this.previousEditor.editor && this.previousEditor.saveable.dirty) {
       await this.previousEditor.saveable.save();
     }
 
