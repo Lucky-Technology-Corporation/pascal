@@ -558,15 +558,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             `loadRouter("./user-dependencies/${fileName.replace(
               /\.ts$/,
               ".js",
-            )}"));`,
+            )}");`,
           );
 
           // Sort all the endpoints in reverse order to guarantee that endpoints with path parameters
           // come second after endpoints that don't have path parameters. For example, consider the following
           // two endpoints:
           //
-          //      loadRouter("./user-dependencies/post.(test).js"));
-          //      loadRouter("./user-dependencies/post.test.js"));
+          //      loadRouter("./user-dependencies/post.(test).js");
+          //      loadRouter("./user-dependencies/post.test.js");
           //
           //  These endpoints represent
           //
@@ -579,8 +579,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           //
           //  Sorting in reverse lexicographic order will produce the following:
           //
-          //      loadRouter("./user-dependencies/post.test.js"));
-          //      loadRouter("./user-dependencies/post.(test).js"));
+          //      loadRouter("./user-dependencies/post.test.js");
+          //      loadRouter("./user-dependencies/post.(test).js");
           //
           //  This is the correct order we want.
           const sortedBlock = lines
