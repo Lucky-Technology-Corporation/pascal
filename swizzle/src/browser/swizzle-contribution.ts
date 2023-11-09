@@ -1,14 +1,14 @@
 import { MaybePromise, MessageService } from "@theia/core";
 import {
-    ApplicationShell,
-    FrontendApplication,
-    FrontendApplicationContribution,
-    TabBarRenderer,
+  ApplicationShell,
+  FrontendApplication,
+  FrontendApplicationContribution,
+  TabBarRenderer,
 } from "@theia/core/lib/browser";
 import { FrontendApplicationStateService } from "@theia/core/lib/browser/frontend-application-state";
 import {
-    PreferenceScope,
-    PreferenceService,
+  PreferenceScope,
+  PreferenceService,
 } from "@theia/core/lib/browser/preferences";
 import { ResourceProvider } from "@theia/core/lib/common";
 import { CommandRegistry } from "@theia/core/lib/common/command";
@@ -20,9 +20,9 @@ import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
 import { TerminalService } from "@theia/terminal/lib/browser/base/terminal-service";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
 import {
-    starterComponent,
-    starterEndpoint,
-    starterHelper,
+  starterComponent,
+  starterEndpoint,
+  starterHelper,
 } from "./swizzle-starter-code";
 
 @injectable()
@@ -839,64 +839,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const textToFind = event.data.findText;
       const replaceWith = event.data.replaceText;
       this.findAndReplace(textToFind, replaceWith);
-    } else if (event.data.type === "prependText") {
-      const content = event.data.content;
-      const currentEditorWidget = this.editorManager.currentEditor;
-
-      if (currentEditorWidget) {
-        const editor = currentEditorWidget.editor;
-
-        if (editor instanceof MonacoEditor) {
-          const monacoEditor = editor.getControl();
-          const model = monacoEditor.getModel();
-
-          if (model && this.lastPrependedText) {
-            const oldContent = model.getValue();
-            const startIndex = oldContent.indexOf(this.lastPrependedText);
-
-            if (startIndex !== -1) {
-              const endIndex = startIndex + this.lastPrependedText.length;
-              const start = model.getPositionAt(startIndex);
-              const end = model.getPositionAt(endIndex);
-              const range = {
-                startLineNumber: start.lineNumber,
-                startColumn: start.column,
-                endLineNumber: end.lineNumber,
-                endColumn: end.column,
-              };
-
-              model.pushEditOperations(
-                [],
-                [{ range: range, text: "", forceMoveMarkers: true }],
-                () => null,
-              );
-            }
-          }
-
-          if (content && content !== "") {
-            // Prepend new content
-            const prependEdit = {
-              identifier: { major: 1, minor: 1 },
-              range: {
-                startLineNumber: 1,
-                startColumn: 1,
-                endLineNumber: 1,
-                endColumn: 1,
-              },
-              text: content,
-              forceMoveMarkers: true,
-            };
-
-            model?.pushEditOperations([], [prependEdit], () => null);
-
-            // Save the prepended text for future removal
-            this.lastPrependedText = content;
-          } else {
-            // If new content is an empty string, clear lastPrependedText
-            this.lastPrependedText = undefined;
-          }
-        }
+    } else if (event.data.type === "upsertImport") {
+      const textToFind = event.data.importStatement;
+      if(!this.doesTextExist(textToFind)){
+        this.prependText(event.data.content)
       }
+    } else if (event.data.type === "prependText") {
+      this.prependText(event.data.content)
     } else if (event.data.type === "replaceText") {
       const newContent = event.data.content;
       const currentEditorWidget = this.editorManager.currentEditor;
@@ -912,6 +861,86 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             // Replace entire content
             model.setValue(newContent);
           }
+        }
+      }
+    }
+  }
+
+  doesTextExist(textToFind: string): boolean {
+    const currentEditorWidget = this.editorManager.currentEditor;
+
+    if (currentEditorWidget) {
+      const editor = currentEditorWidget.editor;
+
+      if (editor instanceof MonacoEditor) {
+        const monacoEditor = editor.getControl();
+        const model = monacoEditor.getModel();
+
+        if (model) {
+          const docContent = model.getValue();
+          let findStartIndex = docContent.indexOf(textToFind);
+          return (findStartIndex !== -1)
+        }
+      }
+    }
+    
+    return true
+  }
+
+  prependText(content: string){
+    const currentEditorWidget = this.editorManager.currentEditor;
+
+    if (currentEditorWidget) {
+      const editor = currentEditorWidget.editor;
+
+      if (editor instanceof MonacoEditor) {
+        const monacoEditor = editor.getControl();
+        const model = monacoEditor.getModel();
+
+        if (model && this.lastPrependedText) {
+          const oldContent = model.getValue();
+          const startIndex = oldContent.indexOf(this.lastPrependedText);
+
+          if (startIndex !== -1) {
+            const endIndex = startIndex + this.lastPrependedText.length;
+            const start = model.getPositionAt(startIndex);
+            const end = model.getPositionAt(endIndex);
+            const range = {
+              startLineNumber: start.lineNumber,
+              startColumn: start.column,
+              endLineNumber: end.lineNumber,
+              endColumn: end.column,
+            };
+
+            model.pushEditOperations(
+              [],
+              [{ range: range, text: "", forceMoveMarkers: true }],
+              () => null,
+            );
+          }
+        }
+
+        if (content && content !== "") {
+          // Prepend new content
+          const prependEdit = {
+            identifier: { major: 1, minor: 1 },
+            range: {
+              startLineNumber: 1,
+              startColumn: 1,
+              endLineNumber: 1,
+              endColumn: 1,
+            },
+            text: content,
+            forceMoveMarkers: true,
+          };
+
+          model?.pushEditOperations([], [prependEdit], () => null);
+
+          // Save the prepended text for future removal
+          this.lastPrependedText = content;
+        } else {
+          // If new content is an empty string, clear lastPrependedText
+          this.lastPrependedText = undefined;
         }
       }
     }
