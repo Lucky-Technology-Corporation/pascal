@@ -43,10 +43,9 @@ export function starterComponent(fileName: string, hasAuth: boolean, path: strin
 `
 
     return `import React from 'react';
-import api from '${apiImport}'; //Remove if not needed
-${hasAuth ? authImport : ''}
+import api from '${apiImport}'; //Use this to make API calls (e.g. await api.get("/endpoint"))
+
 const ${fileName} = () => {
-    ${hasAuth ? `const auth = useAuthUser(); //Remove if not needed` : ''}
     return (
         <div>
             {/* Your content here */}
