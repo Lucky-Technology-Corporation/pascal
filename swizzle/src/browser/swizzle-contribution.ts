@@ -172,6 +172,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             data.title.label = labelText;
           }
         }
+
         const node = originalRenderLabel.call(this, data);
         return node;
       };

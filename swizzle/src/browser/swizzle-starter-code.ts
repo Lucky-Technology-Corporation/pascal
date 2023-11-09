@@ -38,10 +38,7 @@ export function starterCSS(){
 export function starterComponent(fileName: string, hasAuth: boolean, path: string){
     const levels = path.split('/').length - 1;
     const apiImport = '../'.repeat(levels) + 'Api';
-
-    const authImport = `import { useAuthUser } from 'react-auth-kit'
-`
-
+    
     return `import React from 'react';
 import api from '${apiImport}'; //Use this to make API calls (e.g. await api.get("/endpoint"))
 
