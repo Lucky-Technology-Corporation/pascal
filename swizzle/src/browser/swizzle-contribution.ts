@@ -17,7 +17,6 @@ import { inject, injectable } from "@theia/core/shared/inversify";
 import { DebugConsoleContribution } from "@theia/debug/lib/browser/console/debug-console-contribution";
 import { EditorManager, EditorWidget } from "@theia/editor/lib/browser";
 import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
-import { TerminalService } from "@theia/terminal/lib/browser/base/terminal-service";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
 import {
   starterComponent,
@@ -35,9 +34,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
   @inject(ApplicationShell)
   protected readonly shell!: ApplicationShell;
-
-  @inject(TerminalService)
-  protected readonly terminalService!: TerminalService;
 
   @inject(PreferenceService)
   protected readonly preferenceService: PreferenceService;
@@ -60,12 +56,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   private previousEditor: EditorWidget | undefined;
 
   private lastPrependedText?: string;
-  private hiddenBackendTerminalId: string = "";
-  private hiddenFrontendTerminalId: string = "";
-  private permissionsTerminalWidgetId: string = "";
-
-  private frontendTerminalId: string = "";
-  private backendTerminalId: string = "";
 
   private readonly MAIN_DIRECTORY = "/swizzle/code";
 
@@ -85,9 +75,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     //Listen for incoming messages
     window.addEventListener("message", this.handlePostMessage.bind(this));
 
-    //Open the terminal, set the styles, and notify the parent that the extension is ready
+    //Set the styles, and notify the parent that the extension is ready
     this.stateService.reachedState("ready").then(() => {
-      this.openTerminal();
       window.parent.postMessage({ type: "extensionReady" }, "*");
 
       if (
@@ -198,120 +187,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  protected openTerminal(): void {
-    this.terminalService
-      .newTerminal({
-        hideFromUser: false,
-        isTransient: true,
-        destroyTermOnClose: true,
-        cwd: this.MAIN_DIRECTORY + "/frontend",
-        title: "Frontend Logs",
-      })
-      .then(async (terminal) => {
-        try {
-          await terminal.start();
-          this.terminalService.open(terminal);
-          terminal.sendText(`pkill -f "tail -f app.log"\n`);
-          await this.delay(250);
-          terminal.sendText("tail -f app.log\n");
-          this.frontendTerminalId = terminal.id;
-          terminal.clearOutput();
-          console.log("Opened frontend logs terminal" + terminal.id);
-        } catch (error) {
-          console.log(error);
-        }
-      })
-      .catch((error) => {
-        this.messageService.error(`Failed to open the terminal: ${error}`);
-        console.log(error);
-      });
-
-    this.terminalService
-      .newTerminal({
-        hideFromUser: false,
-        isTransient: true,
-        destroyTermOnClose: true,
-        cwd: this.MAIN_DIRECTORY + "/backend",
-        title: "Backend Logs",
-      })
-      .then(async (terminal) => {
-        try {
-          await terminal.start();
-          this.terminalService.open(terminal);
-          // terminal.sendText(`pkill -f "/app/tail-logs.sh app.log"\n`);
-          // await this.delay(100)
-          // terminal.sendText("chmod +x /app/tail-logs.sh\n");
-          // terminal.sendText("/app/tail-logs.sh app.log\n");
-          terminal.sendText(`pkill -f "tail -f server.log"\n`);
-          await this.delay(250);
-          terminal.sendText("tail -f server.log\n");
-          this.backendTerminalId = terminal.id;
-          terminal.clearOutput();
-          console.log("Opened backend logs terminal" + terminal.id);
-        } catch (error) {
-          console.log(error);
-        }
-      })
-      .catch((error) => {
-        this.messageService.error(`Failed to open the terminal: ${error}`);
-        console.log(error);
-      });
-
-    this.terminalService
-      .newTerminal({
-        hideFromUser: true,
-        isTransient: true,
-        destroyTermOnClose: true,
-        cwd: this.MAIN_DIRECTORY + "/backend",
-        title: "Backend Packages",
-      })
-      .then(async (terminal) => {
-        try {
-          await terminal.start();
-          this.hiddenBackendTerminalId = terminal.id;
-          console.log("Opened backend package terminal" + terminal.id);
-        } catch (error) {
-          console.log(error);
-        }
-      });
-
-    this.terminalService
-      .newTerminal({
-        hideFromUser: true,
-        isTransient: true,
-        destroyTermOnClose: true,
-        cwd: this.MAIN_DIRECTORY + "/frontend",
-        title: "Frontend Packages",
-      })
-      .then(async (terminal) => {
-        try {
-          await terminal.start();
-          this.hiddenFrontendTerminalId = terminal.id;
-          console.log("Opened frontend package terminal" + terminal.id);
-        } catch (error) {
-          console.log(error);
-        }
-      });
-
-    this.terminalService
-      .newTerminal({
-        hideFromUser: true,
-        isTransient: true,
-        destroyTermOnClose: true,
-        cwd: this.MAIN_DIRECTORY + "/frontend/src",
-        title: "Permissions",
-      })
-      .then(async (terminal) => {
-        try {
-          await terminal.start();
-          this.permissionsTerminalWidgetId = terminal.id;
-          console.log("Opened permissions terminal" + terminal.id);
-        } catch (error) {
-          console.log(error);
-        }
-      });
-  }
-
   //Set the file associations
   async setFileAssociations(): Promise<void> {
     this.preferenceService.set(
@@ -381,8 +256,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const matches = fileContents.match(swizzleImportRegex);
         const importStatement = matches ? matches[0] : null;
 
-        this.openRelevantTerminal(fileUri);
-
         window.parent.postMessage(
           {
             type: "fileChanged",
@@ -396,19 +269,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           "*",
         );
       }
-    }
-  }
-
-  async openRelevantTerminal(fileName: string): Promise<void> {
-    var terminalId = "";
-    if (fileName.includes("backend/")) {
-      terminalId = this.backendTerminalId;
-    } else if (fileName.includes("frontend/")) {
-      terminalId = this.frontendTerminalId;
-    }
-    const terminal = this.terminalService.all.find((t) => t.id === terminalId);
-    if (terminal) {
-      this.terminalService.open(terminal);
     }
   }
 
@@ -617,16 +477,16 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         }
 
         //check if this is a subdirectory
-        if (basePath.includes("/")) {
-          const newDirectory = basePath.split("/")[0];
-          const terminal = this.terminalService.all.find(
-            (t) => t.id === this.permissionsTerminalWidgetId,
-          );
-          terminal?.sendText(`chmod -R 777 ${newDirectory}\n`);
-          console.log(
-            `sent chmod for ${newDirectory} to terminal ${this.permissionsTerminalWidgetId}`,
-          );
-        }
+        // if (basePath.includes("/")) {
+        //   const newDirectory = basePath.split("/")[0];
+        //   const terminal = this.terminalService.all.find(
+        //     (t) => t.id === this.permissionsTerminalWidgetId,
+        //   );
+        //   terminal?.sendText(`chmod -R 777 ${newDirectory}\n`);
+        //   console.log(
+        //     `sent chmod for ${newDirectory} to terminal ${this.permissionsTerminalWidgetId}`,
+        //   );
+        // }
 
         if (routePath != undefined && routePath !== "") {
           //Add route to RouteList.ts
@@ -780,7 +640,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     // Check the origin or some other authentication method if necessary
     if (event.data.type === "openFile") {
       this.openExistingFile(event.data.fileName);
-      this.openRelevantTerminal(event.data.fileName);
     } else if (event.data.type === "newFile") {
       this.createNewFile(
         event.data.fileName,
@@ -812,30 +671,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const cookieValue = event.data.cookieValue;
       const cookieName = event.data.cookieName;
       document.cookie = cookieName + "=" + cookieValue + "; path=/";
-    } else if (event.data.type === "addPackage") {
-      const packageName = event.data.packageName;
-      const directory = event.data.directory;
-      const terminalWidget =
-        directory == "backend"
-          ? this.terminalService.getById(this.hiddenBackendTerminalId!)
-          : this.terminalService.getById(this.hiddenFrontendTerminalId!);
-      if (!terminalWidget) {
-        this.messageService.error(`Terminal not found`);
-        return;
-      }
-      terminalWidget.sendText(`npm install ${packageName} --save\n`);
-    } else if (event.data.type === "removePackage") {
-      const packageName = event.data.packageName;
-      const directory = event.data.directory;
-      const terminalWidget =
-        directory == "backend"
-          ? this.terminalService.getById(this.hiddenBackendTerminalId!)
-          : this.terminalService.getById(this.hiddenFrontendTerminalId!);
-      if (!terminalWidget) {
-        this.messageService.error(`Terminal not found`);
-        return;
-      }
-      terminalWidget.sendText(`npm uninstall ${packageName}\n`);
     } else if (event.data.type === "findAndReplace") {
       const textToFind = event.data.findText;
       const replaceWith = event.data.replaceText;
