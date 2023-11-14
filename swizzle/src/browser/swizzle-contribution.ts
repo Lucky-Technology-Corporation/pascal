@@ -18,11 +18,6 @@ import { DebugConsoleContribution } from "@theia/debug/lib/browser/console/debug
 import { EditorManager, EditorWidget } from "@theia/editor/lib/browser";
 import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
-import {
-  starterComponent,
-  starterEndpoint,
-  starterHelper,
-} from "./swizzle-starter-code";
 
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
@@ -293,65 +288,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
   }
 
-  async removeFile(
-    relativeFilePath: string,
-    endpointName: string,
-    routePath: string,
-  ): Promise<void> {
-    console.log("removeFile");
-    if (endpointName != undefined && endpointName !== "") {
-      //remove from server.ts if it's an endpoint
-      console.log("remove endpoint");
-      const lastIndex = relativeFilePath.lastIndexOf("/");
-      var fileName = relativeFilePath.substring(lastIndex + 1);
-
-      const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.ts");
-      const serverResource = await this.resourceProvider(serverUri);
-
-      if (serverResource.saveContents) {
-        const content = await serverResource.readContents({ encoding: "utf8" });
-
-        const newContent = content.replace(
-          `\nloadRouter("./user-dependencies/${fileName.replace(
-            /\.ts$/,
-            ".js",
-          )}");`,
-          ``,
-        );
-        await serverResource.saveContents(newContent, { encoding: "utf8" });
-      }
-    } else if (routePath != undefined && routePath !== "") {
-      //remove from RouteList.ts if it's a route
-      console.log("remove route");
-      const lastIndex = relativeFilePath.lastIndexOf("/");
-      var fileName = relativeFilePath.substring(lastIndex + 1);
-      console.log(fileName)
-
-      const serverUri = new URI(
-        this.MAIN_DIRECTORY + "/frontend/src/RouteList.tsx",
-      );
-      const serverResource = await this.resourceProvider(serverUri);
-
-      if (serverResource.saveContents) {
-        var content = await serverResource.readContents({ encoding: "utf8" });
-
-        const routeToRemoveRegex = new RegExp(
-            // `<\\w+Route[^>]*path="${routePath}"[^>]*element={<[^>]+>}[^>]*\\/?>\\s*`,
-            `<SwizzleRoute path="${routePath.replace("/", "\/")}".*>`,
-            "g",
-        );
-        content = content.replace(routeToRemoveRegex, "");
-
-        const importToRemoveRegex = new RegExp(
-          `import ${fileName.replace(".tsx", "")}.*\n`,
-          "g",
-        );
-        content = content.replace(importToRemoveRegex, "");
-
-        await serverResource.saveContents(content, { encoding: "utf8" });
-      }
-    }
-
+  async removeFile(relativeFilePath: string): Promise<void> {
     console.log("removing " + relativeFilePath);
     for (const editorWidget of this.editorManager.all) {
       const editorUri = editorWidget.getResourceUri();
@@ -365,209 +302,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
   }
 
-  //accepts something like get-path-to-api.ts or post-.ts
-  async createNewFile(
-    relativeFilePath: string,
-    endpointName: string,
-    routePath: string,
-    fallbackPath: string,
-  ): Promise<void> {
-    try {
-      var filePath = this.MAIN_DIRECTORY + relativeFilePath;
-      const uri = new URI(filePath);
-      const resource = await this.resourceProvider(uri);
-
-      var fileName = "";
-      if (relativeFilePath.includes("user-dependencies/")) {
-        const lastIndex = relativeFilePath.lastIndexOf("/");
-        fileName = relativeFilePath.substring(lastIndex + 1);
-
-        const method = endpointName.split("/")[0];
-        const endpoint = endpointName.substring(endpointName.indexOf("/"));
-
-        const fileContent = starterEndpoint(method, endpoint);
-
-        if (resource.saveContents) {
-          await resource.saveContents(fileContent, { encoding: "utf8" });
-        }
-
-        //add the reference to server.ts
-        const serverUri = new URI(this.MAIN_DIRECTORY + "/backend/server.ts");
-        const serverResource = await this.resourceProvider(serverUri);
-        if (serverResource.saveContents) {
-          const content = await serverResource.readContents({
-            encoding: "utf8",
-          });
-
-          // Search for block of endpoints in server.ts and using the capture group to get all the endpoints.
-          const regex =
-            /\/\/SWIZZLE_ENDPOINTS_START([\s\S]*)\/\/SWIZZLE_ENDPOINTS_END/g;
-          const result = regex.exec(content);
-
-          // If we can't find the endpoints block, then just return
-          if (!result || result.length < 2) {
-            console.log("Could not find endpoints block in server.ts");
-            return;
-          }
-
-          // Turn the endpoints into individual lines removing all indendation so the sort is consistent
-          const lines = result![1]
-            .split("\n")
-            .filter((line) => line.trim().length > 0)
-            .map((line) => line.trim());
-
-          // Include our new endpoint
-          lines.push(
-            `loadRouter("./user-dependencies/${fileName.replace(
-              /\.ts$/,
-              ".js",
-            )}");`,
-          );
-
-          // Sort all the endpoints in reverse order to guarantee that endpoints with path parameters
-          // come second after endpoints that don't have path parameters. For example, consider the following
-          // two endpoints:
-          //
-          //      loadRouter("./user-dependencies/post.(test).js");
-          //      loadRouter("./user-dependencies/post.test.js");
-          //
-          //  These endpoints represent
-          //
-          //      POST /:test
-          //      POST /test
-          //
-          //  Now if a POST request comes into /test, then the ordering matters. Since /:test appears first,
-          //  that endpoint will be called with the parameter :test = test. This means that it overshadows
-          //  the other /test endpoint.
-          //
-          //  Sorting in reverse lexicographic order will produce the following:
-          //
-          //      loadRouter("./user-dependencies/post.test.js");
-          //      loadRouter("./user-dependencies/post.(test).js");
-          //
-          //  This is the correct order we want.
-          const sortedBlock = lines
-            .sort((a, b) => b.localeCompare(a))
-            .join("\n");
-
-          const endpointsBlock = `//SWIZZLE_ENDPOINTS_START\n${sortedBlock}\n\t//SWIZZLE_ENDPOINTS_END`;
-          const newContent = content.replace(regex, endpointsBlock);
-
-          await serverResource.saveContents(newContent, { encoding: "utf8" });
-        }
-      } else if (relativeFilePath.includes("frontend/")) {
-        const lastIndex = relativeFilePath.lastIndexOf("/");
-        fileName = relativeFilePath.substring(lastIndex + 1);
-
-        const basePath = relativeFilePath.split("frontend/src/")[1];
-
-        const componentName = basePath
-          .replace(".tsx", "")
-          .replace(".ts", "")
-          .slice(basePath.lastIndexOf("/") + 1)
-          .replace(/\./g, "_")
-          .replace(/^(.)/, (match, p1) => p1.toUpperCase())
-          .replace(/_([a-z])/g, (match, p1) => "_" + p1.toUpperCase());
-
-        const hasAuth = fallbackPath != undefined && fallbackPath !== "";
-        var fileContent = starterComponent(componentName, hasAuth, basePath);
-
-        if (resource.saveContents) {
-          await resource.saveContents(fileContent, { encoding: "utf8" });
-        }
-
-        //check if this is a subdirectory
-        // if (basePath.includes("/")) {
-        //   const newDirectory = basePath.split("/")[0];
-        //   const terminal = this.terminalService.all.find(
-        //     (t) => t.id === this.permissionsTerminalWidgetId,
-        //   );
-        //   terminal?.sendText(`chmod -R 777 ${newDirectory}\n`);
-        //   console.log(
-        //     `sent chmod for ${newDirectory} to terminal ${this.permissionsTerminalWidgetId}`,
-        //   );
-        // }
-
-        if (routePath != undefined && routePath !== "") {
-          //Add route to RouteList.ts
-          const importStatement = `import ${componentName} from './${basePath.replace(
-            ".tsx",
-            "",
-          )}';`;
-          var newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<${componentName} />} />`;
-          if (fallbackPath != undefined && fallbackPath !== "") {
-            newRouteDefinition = `<SwizzleRoute path="${routePath}" element={<SwizzlePrivateRoute unauthenticatedFallback="${fallbackPath}" pageComponent={<${componentName} />} /> } />`
-          }
-
-          const serverUri = new URI(
-            this.MAIN_DIRECTORY + "/frontend/src/RouteList.tsx",
-          );
-          const serverResource = await this.resourceProvider(serverUri);
-          if (serverResource.saveContents) {
-            var content = await serverResource.readContents({
-              encoding: "utf8",
-            });
-
-            //Update imports
-            const importRegex = /(import .*\n)+/;
-            const importMatch = content.match(importRegex);
-            if (importMatch) {
-              const newImportBlock = importMatch[0] + importStatement + "\n";
-              content = content.replace(importRegex, newImportBlock);
-            }
-
-            //Update routes
-            const switchRegex = /(<SwizzleRoutes>[\s\S]*?<\/SwizzleRoutes>)/;
-            const match = content.match(switchRegex);
-            if (match) {
-              const oldSwitchBlock = match[1];
-              const sortedRoutes = this.addAndSortRoute(
-                oldSwitchBlock,
-                newRouteDefinition,
-              );
-              const newSwitchBlock = `<SwizzleRoutes>\n  ${sortedRoutes}\n</SwizzleRoutes>`;
-              content = content.replace(oldSwitchBlock, newSwitchBlock);
-            }
-
-            //Save new file
-            await serverResource.saveContents(content, { encoding: "utf8" });
-          }
-        }
-      } else if (relativeFilePath.includes("helpers/")) {
-        fileName = filePath.split("backend/helpers/")[1];
-        var fileContent = starterHelper(fileName.replace(".ts", ""));
-
-        if (resource.saveContents) {
-          await resource.saveContents(fileContent, { encoding: "utf8" });
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  addAndSortRoute(switchBlock: string, newRoute: string): string {
-    // `<SwizzleRoute path="${routePath.replace("/", "\/")}".*>`,
-
-    // const routeRegex = /<SwizzleRoute[^>]*path="([^"]*)"[^>]*element={<[^>]*\/>}[^>]*\/>/g;
-    const routeRegex = /<SwizzleRoute [^>]*path="([^"]*)"[^>].*/g
-    let routes: string[] = [];
-    let match: RegExpExecArray | null;
-    while ((match = routeRegex.exec(switchBlock))) {
-      routes.push(match[0]);
-    }
-    routes.push(newRoute);
-
-    routes.sort((a, b) => {
-      const pathA = a.match(/path="([^"]*)"/)?.[1] ?? "";
-      const pathB = b.match(/path="([^"]*)"/)?.[1] ?? "";
-      return (
-        (pathA.match(/\//g) || []).length - (pathB.match(/\//g) || []).length
-      );
-    });
-
-    return routes.join("\n  ");
-  }
 
   async saveCurrentFile(): Promise<void> {
     const currentEditor = this.editorManager.currentEditor;
@@ -641,22 +375,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     if (event.data.type === "openFile") {
       this.openExistingFile(event.data.fileName);
     } else if (event.data.type === "newFile") {
-      this.createNewFile(
-        event.data.fileName,
-        event.data.endpointName,
-        event.data.routePath,
-        event.data.fallbackPath,
-      );
+      console.log("no-op")
     } else if (event.data.type === "saveFile") {
       this.saveCurrentFile();
     } else if (event.data.type === "closeFiles") {
       this.closeOpenFiles();
     } else if (event.data.type === "removeFile") {
-      this.removeFile(
-        event.data.fileName,
-        event.data.endpointName,
-        event.data.routePath,
-      );
+      this.removeFile(event.data.fileName);
     } else if (event.data.type === "closeSearchView") {
       this.closeSearchView();
     } else if (event.data.type === "openSearchView") {
