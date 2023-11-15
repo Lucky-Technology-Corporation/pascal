@@ -401,7 +401,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const replaceWith = event.data.replaceText;
       this.findAndReplace(textToFind, replaceWith);
     } else if (event.data.type === "upsertImport") {
-      const textToFind = event.data.content;
+      const textToFind = event.data.importStatement; //this is separate so we can search for the text without a line break (e.g. when a comment is on that line)
       if(!this.doesTextExist(textToFind)){
         this.prependText(event.data.content)
       }
