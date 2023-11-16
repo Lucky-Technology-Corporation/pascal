@@ -236,6 +236,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const hasPassportAuth = fileContents.includes(
           "requiredAuthentication, async",
         );
+        const isScheduled = fileContents.includes(
+          "jobAuthentication, async",
+        );
         const hasGetDb = fileContents.includes(
           "import { db } = from 'swizzle-js'",
         );
@@ -256,6 +259,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             type: "fileChanged",
             fileUri: fileUri,
             hasPassportAuth: hasPassportAuth,
+            isScheduled: isScheduled,
             hasGetDb: hasGetDb, //unused
             hasNotification: hasNotification, //unused
             hasStorage: hasStorage, //unused
