@@ -130,14 +130,18 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           const firstDotIndex = label.indexOf(".");
           const firstPart = label.slice(0, firstDotIndex);
           const secondPart = label.slice(firstDotIndex + 1);
-          data.title.label =
-            firstPart.toUpperCase() +
-            " /" +
-            secondPart
-              .replace(".ts", "")
-              .replace(/\./g, "/")
-              .replace(/\(/g, ":")
-              .replace(/\)/g, "");
+          if(secondPart.includes(".cron.")){
+            data.title.label = "⏲ " + secondPart.split(".cron.")[1]
+          } else{
+            data.title.label =
+              firstPart.toUpperCase() +
+              " /" +
+              secondPart
+                .replace(".ts", "")
+                .replace(/\./g, "/")
+                .replace(/\(/g, ":")
+                .replace(/\)/g, "");
+          }
         } else {
           const owner = data.title.owner;
           if (owner.id.includes("/frontend/src/pages/")) {
@@ -236,9 +240,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const hasPassportAuth = fileContents.includes(
           "requiredAuthentication, async",
         );
-        const isScheduled = fileContents.includes(
-          "jobAuthentication, async",
-        );
+
         const hasGetDb = fileContents.includes(
           "import { db } = from 'swizzle-js'",
         );
@@ -259,7 +261,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             type: "fileChanged",
             fileUri: fileUri,
             hasPassportAuth: hasPassportAuth,
-            isScheduled: isScheduled,
             hasGetDb: hasGetDb, //unused
             hasNotification: hasNotification, //unused
             hasStorage: hasStorage, //unused
