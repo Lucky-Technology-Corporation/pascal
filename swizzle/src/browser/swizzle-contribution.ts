@@ -3,7 +3,7 @@ import {
   ApplicationShell,
   FrontendApplication,
   FrontendApplicationContribution,
-  TabBarRenderer,
+  TabBarRenderer
 } from "@theia/core/lib/browser";
 import { FrontendApplicationStateService } from "@theia/core/lib/browser/frontend-application-state";
 import {
@@ -100,8 +100,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             li.p-Menu-item[data-command="core.toggleMaximized"] {
                 display: none !important;
             }
-            li.p-Menu-item[data-command="typescript.findAllFileReferences"] {
+            li.p-Menu-item[data-command="typehierarchy:open-subtype"] {
                 display: none !important;
+            }
+            li.p-Menu-item[data-command="typehierarchy:open-supertype"] {
+              display: none !important;
+            }
+            li.p-Menu-item[data-command="open-disassembly-view"] {
+              display: none !important;
+            }
+            li.p-Menu-item[data-command="editor.action.quickOutline"] {
+              display: none !important;
             }
             `;
       document.head.appendChild(style);
@@ -175,6 +184,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     this.editorManager.onCurrentEditorChanged(
       this.handleEditorChanged.bind(this),
     );
+
   }
 
   //No op the initialize layout
@@ -272,7 +282,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
   }
 
-  async openExistingFile(fileName: string): Promise<void> {
+  async openExistingFile(fileName: string, line?: number, column?: number): Promise<void> {
     if (fileName == undefined || fileName === "") {
       return;
     }
@@ -285,6 +295,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         .then((editorWidget: EditorWidget) => {
           if (editorWidget) {
             this.shell.activateWidget(editorWidget.id);
+            if (line && column) {
+              editorWidget.editor.revealPosition({line: line, character: column})
+            }
           }
         })
         .catch((error) => {
@@ -378,7 +391,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   protected async handlePostMessage(event: MessageEvent): Promise<void> {
     // Check the origin or some other authentication method if necessary
     if (event.data.type === "openFile") {
-      this.openExistingFile(event.data.fileName);
+      this.openExistingFile(event.data.fileName, event.data.line, event.data.column);
     } else if (event.data.type === "newFile") {
       console.log("no-op")
     } else if (event.data.type === "saveFile") {
