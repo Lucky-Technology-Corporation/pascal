@@ -230,6 +230,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       PreferenceScope.User,
     );
 
+    this.preferenceService.set(
+      "editor.tabSize",
+      2,
+      PreferenceScope.User,
+    );
+
     const existingAssociations =
       this.preferenceService.get("files.associations") || {};
     const newAssociations = {
