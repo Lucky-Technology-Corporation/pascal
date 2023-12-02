@@ -3,6 +3,7 @@ import {
   ApplicationShell,
   FrontendApplication,
   FrontendApplicationContribution,
+  KeybindingRegistry,
   TabBarRenderer
 } from "@theia/core/lib/browser";
 import { FrontendApplicationStateService } from "@theia/core/lib/browser/frontend-application-state";
@@ -44,6 +45,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
   @inject(CommandRegistry)
   protected readonly commandRegistry: CommandRegistry;
+
+  @inject(KeybindingRegistry)
+  protected readonly keybindingRegistry: KeybindingRegistry;
 
   @inject(DebugConsoleContribution)
   protected readonly debugConsole: DebugConsoleContribution;
@@ -173,6 +177,28 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const node = originalRenderLabel.call(this, data);
         return node;
       };
+
+      //Register command K
+      this.commandRegistry.registerCommand({
+        id: 'open-ai',
+        label: 'Open AI'
+      }, {
+        execute: () => {
+          console.log("Open AI " + this.getSelectedText())
+          window.parent.postMessage(
+            {
+              type: "openAi",
+              selectedText: this.getSelectedText(),
+            },
+            "*",
+          );
+        }
+      });
+      this.keybindingRegistry.registerKeybinding({
+        command: 'open-ai',
+        keybinding: 'ctrlcmd+k'
+      });
+
 
       console.log("Swizzle editor extension ready");
     });
@@ -442,7 +468,34 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           }
         }
       }
+    } else if(event.data.type === "getSelectedText"){
+      const selectedText = this.getSelectedText();
+      window.parent.postMessage(
+        {
+          type: "selectedText",
+          selectedText: selectedText,
+        },
+        "*",
+      );
+    } else if(event.data.type === "replaceSelectedText"){
+      console.log("replacing " + event.data.content)
+      const editor = this.editorManager.currentEditor;
+      if (editor) {
+        const selection = editor.editor.selection;
+        editor.editor.replaceText({replaceOperations: [{range: selection, text: event.data.content}], source: editor.id});
+      }
+  
     }
+  }
+
+  getSelectedText(): string | undefined {
+    const editor = this.editorManager.currentEditor;
+    if (editor) {
+        const selection = editor.editor.selection;
+        const text = editor.editor.document.getText(selection);
+        return text;
+    }
+    return undefined;
   }
 
   doesTextExist(textToFind: string): boolean {
