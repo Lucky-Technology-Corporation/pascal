@@ -488,7 +488,13 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const editor = this.editorManager.currentEditor;
       if (editor) {
         const selection = editor.editor.selection;
-        editor.editor.replaceText({replaceOperations: [{range: selection, text: event.data.content}], source: editor.id});
+        const selectedText = editor.editor.document.getText(selection);
+        //Leading whitespace
+        const match = selectedText.match(/^\s*/);
+        const prefix = match ? match[0] : '';
+        //Trailing newline
+        const suffix = selectedText.endsWith("\n") ? "\n" : "";
+        editor.editor.replaceText({replaceOperations: [{range: selection, text: prefix + event.data.content + suffix}], source: editor.id});
       }
   
     }
