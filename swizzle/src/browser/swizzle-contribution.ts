@@ -17,6 +17,7 @@ import { URI } from "@theia/core/lib/common/uri";
 import { inject, injectable } from "@theia/core/shared/inversify";
 import { DebugConsoleContribution } from "@theia/debug/lib/browser/console/debug-console-contribution";
 import { EditorManager, EditorWidget } from "@theia/editor/lib/browser";
+import { ProblemManager } from "@theia/markers/lib/browser/problem/problem-manager";
 import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
 
@@ -51,6 +52,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
   @inject(DebugConsoleContribution)
   protected readonly debugConsole: DebugConsoleContribution;
+
+  @inject(ProblemManager)
+  protected readonly problemManager: ProblemManager;
+
 
   private previousEditor: EditorWidget | undefined;
 
@@ -496,7 +501,22 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const suffix = selectedText.endsWith("\n") ? "\n" : "";
         editor.editor.replaceText({replaceOperations: [{range: selection, text: prefix + event.data.content + suffix}], source: editor.id});
       }
-  
+    } else if(event.data.type === "getErrors"){
+      var thisFilesErrors: any[] = []
+      var allFilesErrors: any[] = []
+
+      this.problemManager.findMarkers().forEach((marker) => {
+        if(marker.uri == this.editorManager.currentEditor?.editor.uri.toString()){
+          thisFilesErrors.push(marker.data)
+        }
+        allFilesErrors.push(marker)
+      })
+
+      postMessage({
+        type: "errors",
+        thisFilesErrors: thisFilesErrors,
+        allFilesErrors: allFilesErrors
+      }, "*")
     }
   }
 
