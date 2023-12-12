@@ -505,9 +505,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
       console.log("post errors back")
       postMessage({
-        type: "errors",
-        thisFilesErrors: thisFilesErrors,
-        allFilesErrors: allFilesErrors
+        type: "fileErrors",
+        thisFilesErrors: JSON.stringify(thisFilesErrors),
+        allFilesErrors: JSON.stringify(allFilesErrors)
       }, "*")
     }
   }
