@@ -503,12 +503,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         allFilesErrors.push(marker)
       })
 
-      console.log("post errors back")
-      postMessage({
+      window.parent.postMessage({
         type: "fileErrors",
         thisFilesErrors: JSON.stringify(thisFilesErrors),
         allFilesErrors: JSON.stringify(allFilesErrors)
       }, "*")
+
     }
   }
 
