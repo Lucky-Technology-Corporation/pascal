@@ -362,18 +362,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     const currentEditor = this.editorManager.currentEditor;
 
     if (currentEditor) {
-      const uri = currentEditor.editor.uri;
-      const resource = await this.resourceProvider(uri);
-
-      if (resource.saveContents) {
-        const editorModel = currentEditor.editor.document;
-        if (editorModel) {
-          const content = editorModel.getText();
-          await resource.saveContents(content, { encoding: "utf8" });
-        }
-      }
+      await currentEditor.saveable.save()
     }
-    return;
   }
 
   async closeSearchView(): Promise<void> {
