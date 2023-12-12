@@ -491,17 +491,19 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         const suffix = selectedText.endsWith("\n") ? "\n" : "";
         editor.editor.replaceText({replaceOperations: [{range: selection, text: prefix + event.data.content + suffix}], source: editor.id});
       }
-    } else if(event.data.type === "getErrors"){
+    } else if(event.data.type === "getFileErrors"){
       var thisFilesErrors: any[] = []
       var allFilesErrors: any[] = []
 
       this.problemManager.findMarkers().forEach((marker) => {
+        console.log(JSON.stringify(marker))
         if(marker.uri == this.editorManager.currentEditor?.editor.uri.toString()){
           thisFilesErrors.push(marker.data)
         }
         allFilesErrors.push(marker)
       })
 
+      console.log("post errors back")
       postMessage({
         type: "errors",
         thisFilesErrors: thisFilesErrors,
