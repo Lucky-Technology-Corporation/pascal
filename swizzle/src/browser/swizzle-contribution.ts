@@ -64,7 +64,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   private readonly MAIN_DIRECTORY = "/swizzle/code";
 
   onStart(app: FrontendApplication): MaybePromise<void> {
-    console.log("Theia FrontendApplication onStart");
+    console.log("Theia 12.15.23");
 
     //Set JWT as cookie in case we missed it
     const urlParams = new URLSearchParams(window.location.search);
@@ -325,7 +325,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
     // await this.closeCurrentFile();
     const fileUri = this.MAIN_DIRECTORY + fileName;
-    console.log("opening " + fileUri);
     if (fileUri) {
       this.editorManager
         .open(new URI(fileUri))
@@ -344,13 +343,9 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   }
 
   async removeFile(relativeFilePath: string): Promise<void> {
-    console.log("removing " + relativeFilePath);
     for (const editorWidget of this.editorManager.all) {
       const editorUri = editorWidget.getResourceUri();
       const filePath = "file://" + this.MAIN_DIRECTORY + relativeFilePath;
-      console.log(
-        decodeURIComponent(editorUri?.toString() ?? "") + " =?= " + filePath,
-      );
       if (decodeURIComponent(editorUri?.toString() ?? "") === filePath) {
         editorWidget.close();
       }
@@ -401,7 +396,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   }
 
   async closeOpenFiles(): Promise<void> {
-    console.log("Close open files");
     for (const editorWidget of this.editorManager.all) {
       editorWidget.close();
     }
@@ -479,7 +473,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         "*",
       );
     } else if(event.data.type === "replaceSelectedText"){
-      console.log("replacing " + event.data.content)
       const editor = this.editorManager.currentEditor;
       if (editor) {
         const selection = editor.editor.selection;
