@@ -171,6 +171,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
               .replace(/\./g, "/")
               .replace(/\(/g, ":")
               .replace(/\)/g, "")
+              .replace(/\$/g, ":")
               .toLowerCase();
             if (!labelText.startsWith("/")) {
               labelText = "/" + labelText;
