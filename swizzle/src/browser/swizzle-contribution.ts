@@ -189,6 +189,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         return node;
       };
 
+      //disable command \
+      this.keybindingRegistry.unregisterKeybinding({
+        command: 'core.toggleMaximized',
+        keybinding: 'ctrlcmd+\\'
+      })
+
       //Register command K
       this.commandRegistry.registerCommand({
         id: 'open-ai',
