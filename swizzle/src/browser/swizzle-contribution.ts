@@ -82,7 +82,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     //Set the styles, and notify the parent that the extension is ready
     this.stateService.reachedState("ready").then(() => {
       window.parent.postMessage({ type: "extensionReady" }, "*");
-
+      
       if (
         document.getElementById("theia-top-panel") &&
         document.getElementById("theia-left-right-split-panel")
@@ -91,6 +91,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         document.getElementById("theia-left-right-split-panel")!.style.top =
           "0px";
       }
+
       if (document.getElementById("shell-tab-explorer-view-container")) {
         document.getElementById(
           "shell-tab-explorer-view-container",
@@ -103,6 +104,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
       const style = document.createElement("style");
       style.innerHTML = `
+            div.theia-editor{
+              top: 0px !important;
+            }
+
             li.p-Menu-item[data-command="navigator.reveal"] {
                 display: none !important;
             }
@@ -205,7 +210,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         keybinding: 'ctrlcmd+k'
       });
 
-
       console.log("Swizzle editor extension ready");
     });
 
@@ -216,7 +220,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     this.editorManager.onCurrentEditorChanged(
       this.handleEditorChanged.bind(this),
     );
-
   }
 
   //No op the initialize layout
@@ -276,6 +279,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
 
     const editor = this.editorManager.currentEditor;
+    
     this.previousEditor = editor;
 
     if (editor) {
