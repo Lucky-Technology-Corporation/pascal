@@ -102,6 +102,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           "none";
       }
 
+      if(document.getElementsByClassName("debug-action codicon codicon-debug-start action-label").length > 0){
+        (document.getElementsByClassName("debug-action codicon codicon-debug-start action-label")[0] as HTMLElement).style.display = "none";
+      }
+
       const style = document.createElement("style");
       style.innerHTML = `
             div.theia-editor{
