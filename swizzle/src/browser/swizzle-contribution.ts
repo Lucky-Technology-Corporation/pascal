@@ -1,4 +1,4 @@
-import { MaybePromise, MessageService } from "@theia/core";
+import { DisposableCollection, MaybePromise, MessageService } from "@theia/core";
 import {
   ApplicationShell,
   FrontendApplication,
@@ -56,6 +56,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   @inject(ProblemManager)
   protected readonly problemManager: ProblemManager;
 
+  private readonly toDispose = new DisposableCollection();
 
   private previousEditor: EditorWidget | undefined;
 
@@ -108,29 +109,32 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
       const style = document.createElement("style");
       style.innerHTML = `
-            div.theia-editor{
-              top: 0px !important;
-            }
+        div.theia-editor{
+          top: 0px !important;
+        }
 
-            li.p-Menu-item[data-command="navigator.reveal"] {
-                display: none !important;
-            }
-            li.p-Menu-item[data-command="core.toggleMaximized"] {
-                display: none !important;
-            }
-            li.p-Menu-item[data-command="typehierarchy:open-subtype"] {
-                display: none !important;
-            }
-            li.p-Menu-item[data-command="typehierarchy:open-supertype"] {
-              display: none !important;
-            }
-            li.p-Menu-item[data-command="open-disassembly-view"] {
-              display: none !important;
-            }
-            li.p-Menu-item[data-command="editor.action.quickOutline"] {
-              display: none !important;
-            }
-            `;
+        li.p-Menu-item[data-command="navigator.reveal"] {
+            display: none !important;
+        }
+        li.p-Menu-item[data-command="core.toggleMaximized"] {
+            display: none !important;
+        }
+        li.p-Menu-item[data-command="typehierarchy:open-subtype"] {
+            display: none !important;
+        }
+        li.p-Menu-item[data-command="typehierarchy:open-supertype"] {
+          display: none !important;
+        }
+        li.p-Menu-item[data-command="open-disassembly-view"] {
+          display: none !important;
+        }
+        li.p-Menu-item[data-command="editor.action.quickOutline"] {
+          display: none !important;
+        }
+        .custom-line-highlight{
+          background-color: rgba(255, 235, 59, 0.25); 
+        }
+      `;
       document.head.appendChild(style);
 
       if (document.getElementById("theia-statusBar")) {
@@ -220,6 +224,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         keybinding: 'ctrlcmd+k'
       });
 
+      this.setupContentListeners()
+
       console.log("Swizzle editor extension ready");
     });
 
@@ -227,9 +233,96 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     this.setFileAssociations();
 
     //Listen for file changes
-    this.editorManager.onCurrentEditorChanged(
+    const editorChangeListener = this.editorManager.onCurrentEditorChanged(
       this.handleEditorChanged.bind(this),
     );
+    this.toDispose.push(editorChangeListener);
+  }
+
+  private decorationIds: string[] = [];
+  private commentIds: { [key: string]: string } = {}
+
+  private setupContentListeners(): void{
+    const editorWidget = this.editorManager.currentEditor;
+    if (editorWidget && editorWidget.editor instanceof MonacoEditor) {
+      const editor = editorWidget.editor as MonacoEditor;
+      const model = editor.getControl().getModel();
+      if(model){
+        //Text changed, update the comment positions
+        const contentChangeListener = model.onDidChangeContent(() => {
+          const newPositions = this.decorationIds.map(id => {
+            const decorationRange = model.getDecorationRange(id);
+            return decorationRange
+          })
+          //Do something with newPositions
+          console.log(newPositions)
+        });
+        this.toDispose.push(contentChangeListener);
+
+        //Selection changed, notify the parent
+        const selectedTextChangeListener = model.onDidChangeDecorations((event) => {
+          if(editor.selection.start.line != editor.selection.end.line && editor.selection.start.character != editor.selection.end.character){
+            window.parent.postMessage(
+              {
+                type: "didSelectRange"
+              },
+              "*",
+            );
+          } else{
+            window.parent.postMessage(
+              {
+                type: "didUnselectRange"
+              },
+              "*",
+            );
+          }
+        })
+        this.toDispose.push(selectedTextChangeListener);
+      }
+    }
+  }
+
+  public highlightLine(id: string, isCreating: boolean, startLine?: number, startCharacter?: number, endLine?: number, endCharacter?: number, message?: string): void {
+    const editorWidget = this.editorManager.currentEditor;
+    if (editorWidget && editorWidget.editor instanceof MonacoEditor) {
+      const editor = editorWidget.editor as MonacoEditor;
+      if(isCreating){
+        const range = {
+          start: { line: startLine!, character: startCharacter || 0 },
+          end: { line: endLine!, character: endCharacter || 1000 }
+        };
+
+        const decoration = {
+          range: range,
+          options: {
+              isWholeLine: false,
+              hoverMessage: message,
+              className: 'custom-line-highlight',
+              linesDecorationsClassName: 'custom-line-highlight'
+          }
+        };
+
+        const ids = editor.deltaDecorations({
+            oldDecorations: [],
+            newDecorations: [decoration]
+        });
+        this.decorationIds.push(ids[0])
+        this.commentIds[id] = ids[0]
+      } else {
+        const decorationId = this.commentIds[id]
+        editor.deltaDecorations({
+            oldDecorations: [decorationId],
+            newDecorations: []
+        });
+        this.decorationIds = this.decorationIds.filter(dId => dId != decorationId)
+        delete this.commentIds[id]
+      }
+
+    }
+  } 
+
+  public dispose(): void {
+    this.toDispose.dispose();
   }
 
   //No op the initialize layout
@@ -487,6 +580,15 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         },
         "*",
       );
+    } else if(event.data.type === "getSelectedTextRange"){
+      const range = this.getSelectedTextRange();
+      window.parent.postMessage(
+        {
+          type: "selectedTextRange",
+          range: range
+        },
+        "*",
+      );
     } else if(event.data.type === "replaceSelectedText"){
       const editor = this.editorManager.currentEditor;
       if (editor) {
@@ -517,6 +619,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         allFilesErrors: JSON.stringify(allFilesErrors)
       }, "*")
 
+    }
+  }
+
+  getSelectedTextRange(): any {
+    const editor = this.editorManager.currentEditor;
+    if (editor) {
+        const range = {
+          start: editor.editor.selection.start,
+          end: editor.editor.selection.end
+        }
+        return range;
     }
   }
 
