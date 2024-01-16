@@ -20,7 +20,6 @@ import { EditorManager, EditorWidget } from "@theia/editor/lib/browser";
 import { ProblemManager } from "@theia/markers/lib/browser/problem/problem-manager";
 import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
-
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
   @inject(EditorManager)
@@ -214,6 +213,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             {
               type: "openAi",
               selectedText: this.getSelectedText(),
+              cursorPosition: this.getCursorXYCoordinates()
             },
             "*",
           );
@@ -320,6 +320,32 @@ export class SwizzleContribution implements FrontendApplicationContribution {
 
     }
   } 
+
+  getCursorXYCoordinates(): { x: number; y: number } | undefined {
+    const editor = this.editorManager.currentEditor;
+    if (editor) {
+      if (editor.editor instanceof MonacoEditor) {
+        return this.calculateCursorPosition(editor.editor);
+      }
+    }
+    return undefined;
+  }
+
+  private calculateCursorPosition(textEditor: MonacoEditor): { x: number; y: number } {
+      const editorDomNode = textEditor.getControl().getDomNode();
+      if (!editorDomNode) {
+          return { x: 0, y: 0 };
+      }
+
+      const contentWidget = editorDomNode.getElementsByClassName('cursor')[0] as HTMLElement;
+      if (contentWidget) {
+          const editorRect = editorDomNode.getBoundingClientRect();
+          const widgetRect = contentWidget.getBoundingClientRect();
+          return { x: widgetRect.left - editorRect.left, y: widgetRect.top - editorRect.top };
+      }
+
+      return { x: 0, y: 0 };
+  }
 
   public dispose(): void {
     this.toDispose.dispose();
