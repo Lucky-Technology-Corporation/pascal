@@ -19,7 +19,9 @@ import { DebugConsoleContribution } from "@theia/debug/lib/browser/console/debug
 import { EditorManager, EditorWidget } from "@theia/editor/lib/browser";
 import { ProblemManager } from "@theia/markers/lib/browser/problem/problem-manager";
 import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
+import { MonacoEditorModel } from "@theia/monaco/lib/browser/monaco-editor-model";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
+
 @injectable()
 export class SwizzleContribution implements FrontendApplicationContribution {
   @inject(EditorManager)
@@ -237,6 +239,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       this.handleEditorChanged.bind(this),
     );
     this.toDispose.push(editorChangeListener);
+
   }
 
   private decorationIds: string[] = [];
@@ -248,16 +251,23 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const editor = editorWidget.editor as MonacoEditor;
       const model = editor.getControl().getModel();
       if(model){
+
+        const editorSaveListener = ((this.editorManager.currentEditor?.editor as MonacoEditor).document as MonacoEditorModel).onDidSaveModel(
+          this.handleEditorSaved.bind(this),
+        )
+        this.toDispose.push(editorSaveListener);
+    
+
         //Text changed, update the comment positions
-        const contentChangeListener = model.onDidChangeContent(() => {
-          const newPositions = this.decorationIds.map(id => {
-            const decorationRange = model.getDecorationRange(id);
-            return decorationRange
-          })
-          //Do something with newPositions
-          console.log(newPositions)
-        });
-        this.toDispose.push(contentChangeListener);
+        // const contentChangeListener = model.onDidChangeContent(() => {
+        //   const newPositions = this.decorationIds.map(id => {
+        //     const decorationRange = model.getDecorationRange(id);
+        //     return decorationRange
+        //   })
+        //   //Save newPositions in the comment database
+        //   console.log(newPositions)
+        // });
+        // this.toDispose.push(contentChangeListener);
 
         //Selection changed, notify the parent
         const selectedTextChangeListener = model.onDidChangeDecorations((event) => {
@@ -396,6 +406,22 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     );
   }
 
+  protected async handleEditorSaved(): Promise<void> {
+    console.log("SAVE")
+    const editor = this.editorManager.currentEditor;
+
+    const oldFileContents = editor?.editor.document.getText();
+    const routerLine = oldFileContents?.match(/^router\..*\{/);
+    window.parent.postMessage(
+      {
+        type: "routerLine",
+        fileUri: this.previousEditor?.editor.uri.toString(),
+        routerLine: routerLine ? routerLine[0] : "",
+      },
+      "*",
+    );
+  }
+
   //Notify the parent that the current file has changed
   protected async handleEditorChanged(): Promise<void> {
     if (!this.editorManager) {
@@ -406,17 +432,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     if (this.previousEditor && this.previousEditor.editor && this.previousEditor.saveable.dirty) {
       await this.previousEditor.saveable.save();
     }
-
-    const oldFileContents = this.previousEditor?.editor.document.getText();
-    const routerLine = oldFileContents?.match(/^router\..*\{/);
-    window.parent.postMessage(
-      {
-        type: "routerLine",
-        fileUri: this.previousEditor?.editor.uri.toString(),
-        routerLine: routerLine ? routerLine[0] : "",
-      },
-      "*",
-    );
 
     const editor = this.editorManager.currentEditor;
     
