@@ -407,6 +407,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       await this.previousEditor.saveable.save();
     }
 
+    const oldFileContents = this.previousEditor?.editor.document.getText();
+    const routerLine = oldFileContents?.match(/^router\..*\{/);
+    window.parent.postMessage(
+      {
+        type: "routerLine",
+        fileUri: this.previousEditor?.editor.uri.toString(),
+        routerLine: routerLine ? routerLine[0] : "",
+      },
+      "*",
+    );
+
     const editor = this.editorManager.currentEditor;
     
     this.previousEditor = editor;
