@@ -409,6 +409,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           type: "routerLine",
           fileUri: fileUri,
           routerLine: routerLine ? routerLine[0] : "",
+          fileState: "closed"
         },
         "*",
       );
@@ -426,6 +427,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             type: "routerLine",
             fileUri: fileUri,
             routerLine: routerLine ? routerLine[0] : "",
+            fileState: "open"
           },
           "*",
         );
