@@ -19,7 +19,6 @@ import { DebugConsoleContribution } from "@theia/debug/lib/browser/console/debug
 import { EditorManager, EditorWidget } from "@theia/editor/lib/browser";
 import { ProblemManager } from "@theia/markers/lib/browser/problem/problem-manager";
 import { MonacoEditor } from "@theia/monaco/lib/browser/monaco-editor";
-import { MonacoEditorModel } from "@theia/monaco/lib/browser/monaco-editor-model";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
 
 @injectable()
@@ -66,7 +65,7 @@ export class SwizzleContribution implements FrontendApplicationContribution {
   private readonly MAIN_DIRECTORY = "/swizzle/code";
 
   onStart(app: FrontendApplication): MaybePromise<void> {
-    console.log("Theia 12.15.23");
+    console.log("Theia 1.17.24");
 
     //Set JWT as cookie in case we missed it
     const urlParams = new URLSearchParams(window.location.search);
@@ -251,13 +250,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const editor = editorWidget.editor as MonacoEditor;
       const model = editor.getControl().getModel();
       if(model){
-
-        const editorSaveListener = ((this.editorManager.currentEditor?.editor as MonacoEditor).document as MonacoEditorModel).onDidSaveModel(
-          this.handleEditorSaved.bind(this),
-        )
-        this.toDispose.push(editorSaveListener);
-    
-
         //Text changed, update the comment positions
         // const contentChangeListener = model.onDidChangeContent(() => {
         //   const newPositions = this.decorationIds.map(id => {
@@ -406,20 +398,39 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     );
   }
 
-  protected async handleEditorSaved(): Promise<void> {
-    console.log("SAVE")
-    const editor = this.editorManager.currentEditor;
+  protected async sendRouterLineToFrontend(): Promise<void> {
+    //Send the last file's router line to the frontend
+    const fileUri = this.previousEditor?.editor.uri.toString()
+    const oldFileContents = this.previousEditor?.editor.document.getText();
+    const routerLine = oldFileContents?.match(/^(router\.(get|post|put|patch|delete)).*/gm);
+    if(routerLine != null){
+      window.parent.postMessage(
+        {
+          type: "routerLine",
+          fileUri: fileUri,
+          routerLine: routerLine ? routerLine[0] : "",
+        },
+        "*",
+      );
+    }
 
-    const oldFileContents = editor?.editor.document.getText();
-    const routerLine = oldFileContents?.match(/^router\..*\{/);
-    window.parent.postMessage(
-      {
-        type: "routerLine",
-        fileUri: this.previousEditor?.editor.uri.toString(),
-        routerLine: routerLine ? routerLine[0] : "",
-      },
-      "*",
-    );
+    //Send this file's router line to the frontend
+    setTimeout(() => {
+      const fileUri = this.editorManager.currentEditor?.editor.uri.toString()
+      const newFileContents = this.editorManager.currentEditor?.editor.document.getText();
+      const routerLine = newFileContents?.match(/^(router\.(get|post|put|patch|delete)).*/gm);
+      console.log("newRouterLine", routerLine)
+      if(routerLine != null){
+        window.parent.postMessage(
+          {
+            type: "routerLine",
+            fileUri: fileUri,
+            routerLine: routerLine ? routerLine[0] : "",
+          },
+          "*",
+        );
+      }
+    }, 250)
   }
 
   //Notify the parent that the current file has changed
@@ -432,6 +443,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     if (this.previousEditor && this.previousEditor.editor && this.previousEditor.saveable.dirty) {
       await this.previousEditor.saveable.save();
     }
+
+    this.sendRouterLineToFrontend()
 
     const editor = this.editorManager.currentEditor;
     
