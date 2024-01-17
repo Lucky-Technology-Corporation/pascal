@@ -1470,7 +1470,7 @@
     "@theia/core" "1.40.0"
     "@theia/variable-resolver" "1.40.0"
 
-"@theia/electron@1.40.0", "@theia/electron@latest":
+"@theia/electron@1.40.0":
   version "1.40.0"
   resolved "https://registry.yarnpkg.com/@theia/electron/-/electron-1.40.0.tgz#0b98d3b08f84df9a5b0287c73e7e0e82323139e4"
   integrity sha512-wYdBLwcr6qVQZnFgs2/3ILwz1T5HgjRlwF85AMDbF7eVdjKd8HHoOzAuqnQCdT1NzIMG05Jp170xg8Q8VevfAA==
@@ -2075,11 +2075,6 @@
   version "20.5.4"
   resolved "https://registry.npmjs.org/@types/node/-/node-20.5.4.tgz"
   integrity sha512-Y9vbIAoM31djQZrPYjpTLo0XlaSwOIsrlfE3LpulZeRblttsLQRFRlBAppW0LOxyT3ALj2M5vU1ucQQayQH3jA==
-
-"@types/node@^16.11.26":
-  version "16.18.44"
-  resolved "https://registry.npmjs.org/@types/node/-/node-16.18.44.tgz"
-  integrity sha512-PZXtT+wqSMHnLPVExTh+tMt1VK+GvjRLsGZMbcQ4Mb/cG63xJig/TUmgrDa9aborl2i22UnpIzHYNu7s97NbBQ==
 
 "@types/p-queue@^2.3.1":
   version "2.3.2"
@@ -4072,15 +4067,6 @@ electron-to-chromium@^1.4.477:
   resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.500.tgz"
   integrity sha512-P38NO8eOuWOKY1sQk5yE0crNtrjgjJj6r3NrbIKtG18KzCHmHE2Bt+aQA7/y0w3uYsHWxDa6icOohzjLJ4vJ4A==
 
-electron@^23.2.4:
-  version "23.3.13"
-  resolved "https://registry.npmjs.org/electron/-/electron-23.3.13.tgz"
-  integrity sha512-BaXtHEb+KYKLouUXlUVDa/lj9pj4F5kiE0kwFdJV84Y2EU7euIDgPthfKtchhr5MVHmjtavRMIV/zAwEiSQ9rQ==
-  dependencies:
-    "@electron/get" "^2.0.0"
-    "@types/node" "^16.11.26"
-    extract-zip "^2.0.1"
-
 emoji-regex@^8.0.0:
   version "8.0.0"
   resolved "https://registry.npmjs.org/emoji-regex/-/emoji-regex-8.0.0.tgz"
@@ -4407,7 +4393,7 @@ external-editor@^2.0.4:
     iconv-lite "^0.4.17"
     tmp "^0.0.33"
 
-extract-zip@2.0.1, extract-zip@^2.0.1:
+extract-zip@2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/extract-zip/-/extract-zip-2.0.1.tgz"
   integrity sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==

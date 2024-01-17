@@ -9,9 +9,7 @@
     "prepare": "lerna run prepare",
     "postinstall": "theia check:theia-version",
     "rebuild:browser": "theia rebuild:browser",
-    "rebuild:electron": "theia rebuild:electron",
     "start:browser": "yarn rebuild:browser && yarn --cwd browser-app start",
-    "start:electron": "yarn rebuild:electron && yarn --cwd electron-app start",
     "watch": "lerna run --parallel watch"
   },
   "devDependencies": {
@@ -19,7 +17,6 @@
   },
   "resolutions": {
     "@theia/application-manager": "1.40.0",
-    "@theia/electron": "1.40.0",
     "@theia/request": "1.40.0",
     "@theia/ffmpeg": "1.40.0",
     "@theia/application-package": "1.40.0",
@@ -45,8 +42,7 @@
   },
   "workspaces": [
     "swizzle",
-    "browser-app",
-    "electron-app"
+    "browser-app"
   ],
   "dependencies": {
     "@theia/plugin-ext-vscode": "latest",
