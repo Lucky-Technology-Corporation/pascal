@@ -420,7 +420,6 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       const fileUri = this.editorManager.currentEditor?.editor.uri.toString()
       const newFileContents = this.editorManager.currentEditor?.editor.document.getText();
       const routerLine = newFileContents?.match(/^(router\.(get|post|put|patch|delete)).*/gm);
-      console.log("newRouterLine", routerLine)
       if(routerLine != null){
         window.parent.postMessage(
           {
