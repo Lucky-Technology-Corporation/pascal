@@ -497,7 +497,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     if (fileName == undefined || fileName === "") {
       return;
     }
-    // await this.closeCurrentFile();
+    const previousActiveEditor = this.editorManager.activeEditor;
+
     const fileUri = this.MAIN_DIRECTORY + fileName;
     if (fileUri) {
       this.editorManager
@@ -508,6 +509,11 @@ export class SwizzleContribution implements FrontendApplicationContribution {
             if (line && column) {
               editorWidget.editor.revealPosition({line: line, character: column})
             }
+
+            //Close the previous editor
+            if (previousActiveEditor && previousActiveEditor !== editorWidget) {
+              this.shell.closeWidget(previousActiveEditor.id);
+            }  
           }
         })
         .catch((error) => {
