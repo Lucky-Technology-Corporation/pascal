@@ -209,12 +209,12 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         label: 'Open AI'
       }, {
         execute: () => {
-          console.log("Open AI " + this.getSelectedText())
           window.parent.postMessage(
             {
               type: "openAi",
               selectedText: this.getSelectedText(),
-              cursorPosition: this.getCursorXYCoordinates()
+              cursorPosition: this.getCursorXYCoordinates(),
+              textInsertPosition: this.getCursorLineAndColumn()
             },
             "*",
           );
@@ -713,6 +713,17 @@ export class SwizzleContribution implements FrontendApplicationContribution {
         return text;
     }
     return undefined;
+  }
+
+  getCursorLineAndColumn() : {line: number, column: number} | undefined {
+    const editor = this.editorManager.currentEditor;
+    if (editor) {
+        const selection = editor.editor.selection;
+        const line = selection.start.line
+        const column = selection.start.character
+        return {line: line, column: column};
+    }
+    return undefined
   }
 
   doesTextExist(textToFind: string): boolean {
