@@ -541,6 +541,10 @@ export class SwizzleContribution implements FrontendApplicationContribution {
     }
   }
 
+  async saveWithoutFormatting(): Promise<void> {
+    await this.commandRegistry.executeCommand("core.saveWithoutFormatting");
+  }
+
   async closeSearchView(): Promise<void> {
     this.shell.collapsePanel("left");
   }
@@ -597,6 +601,8 @@ export class SwizzleContribution implements FrontendApplicationContribution {
       console.log("no-op")
     } else if (event.data.type === "saveFile") {
       this.saveCurrentFile();
+    } else if(event.data.type === "saveFileWithoutFormatting"){
+      this.saveWithoutFormatting();
     } else if (event.data.type === "closeFiles") {
       this.closeOpenFiles();
     } else if (event.data.type === "removeFile") {
