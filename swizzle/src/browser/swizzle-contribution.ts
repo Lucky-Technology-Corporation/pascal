@@ -644,8 +644,14 @@ export class SwizzleContribution implements FrontendApplicationContribution {
           const model = monacoEditor.getModel();
 
           if (model) {
-            // Replace entire content
-            model.setValue(newContent);
+            const range = model.getFullModelRange();
+            const operation = {
+              range: range,
+              text: newContent,
+              forceMoveMarkers: true,
+            };
+            monacoEditor.executeEdits(newContent, [operation]);
+            // model.setValue(newContent); //This doesn't preserve history for undo
           }
         }
       }
